@@ -1,0 +1,83 @@
+{
+  "races": [
+    {
+      "id": "vampire",
+      "name": "뱀파이어 (Vampire)",
+      "description": "밤의 지배자. 날카로운 송곳니와 높은 민첩성을 가졌으며 흡혈 스킬을 사용합니다.",
+      "fangs": true,
+      "statBonus": { "str": 1, "dex": 2, "wis": 0 },
+      "innateSkill": "drain_blood"
+    },
+    {
+      "id": "mermaid",
+      "name": "인어 (Mermaid)",
+      "description": "심해의 유령. 강인한 은빛 비늘과 매혹적인 음파, 높은 지혜를 자랑합니다.",
+      "fangs": false,
+      "statBonus": { "str": 0, "dex": 1, "wis": 2 },
+      "innateSkill": "siren_call"
+    },
+    {
+      "id": "human",
+      "name": "인간 (Human)",
+      "description": "어둠에 맞서는 탁월한 적응력과 불굴의 의지를 가진 기사.",
+      "fangs": false,
+      "statBonus": { "str": 1, "dex": 1, "wis": 1 },
+      "innateSkill": "heroic_strike"
+    }
+  ],
+  "classes": [
+    {
+      "id": "warrior",
+      "name": "암흑 기사 (Dark Warrior)",
+      "description": "중갑을 두르고 대검을 휘두르는 강력한 전사.",
+      "mainStat": "str",
+      "hpBonus": 20,
+      "startingWeapon": "파멸의 룬 대검"
+    },
+    {
+      "id": "rogue",
+      "name": "그림자 도적 (Shadow Rogue)",
+      "description": "어둠 속에 숨어 단검으로 급소를 노리는 암살자.",
+      "mainStat": "dex",
+      "hpBonus": 10,
+      "startingWeapon": "그림자 단검"
+    },
+    {
+      "id": "mage",
+      "name": "흑마법사 (Necromancer)",
+      "description": "금단의 원소와 사령 마법을 다루는 학자.",
+      "mainStat": "wis",
+      "hpBonus": 5,
+      "startingWeapon": "혼돈의 지팡이"
+    }
+  ],
+  "skills": {
+    "drain_blood": {
+      "name": "송곳니 흡혈",
+      "reqFangs": true,
+      "stat": "dex",
+      "diceBonus": 2,
+      "damageFormula": "1d6+2",
+      "healAmount": 4,
+      "flavor": "날카로운 송곳니로 동맥을 꿰뚫어 혈액을 빨아들이고 체력을 회복합니다."
+    },
+    "siren_call": {
+      "name": "세이렌의 음파",
+      "reqFangs": false,
+      "stat": "wis",
+      "diceBonus": 3,
+      "damageFormula": "1d8+1",
+      "healAmount": 0,
+      "flavor": "심해의 환각 음파를 발사하여 적의 정신을 혼미하게 만듭니다."
+    },
+    "heroic_strike": {
+      "name": "불굴의 베기",
+      "reqFangs": false,
+      "stat": "str",
+      "diceBonus": 2,
+      "damageFormula": "1d10",
+      "healAmount": 0,
+      "flavor": "묵직한 기세로 무기를 내리쳐 적의 방어를 파쇄합니다."
+    }
+  }
+}
