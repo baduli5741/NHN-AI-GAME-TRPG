@@ -1,6 +1,6 @@
 import rulebookData from '../data/rulebook.json';
 
-const DEFAULT_GEMINI_KEY = 'AIzaSyBH8e2a2o1Li2cg1JVMZbtwdk4AyDS-Ea0';
+const DEFAULT_GEMINI_KEY = import.meta.env.VITE_GEMINI_API_KEY || '';
 
 /**
  * RAG Skill & Action Verification

@@ -42,7 +42,7 @@ export default function App() {
 
   const [diceAnimOn, setDiceAnimOn] = useState(true);
   const [soundOn, setSoundOn] = useState(true);
-  const [apiKey, setApiKey] = useState('AIzaSyBH8e2a2o1Li2cg1JVMZbtwdk4AyDS-Ea0');
+  const [apiKey, setApiKey] = useState(import.meta.env.VITE_GEMINI_API_KEY || '');
   const [proxyUrl, setProxyUrl] = useState('');
 
   const [isMapOpen, setIsMapOpen] = useState(false);
