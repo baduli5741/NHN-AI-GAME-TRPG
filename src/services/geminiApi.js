@@ -99,7 +99,7 @@ export function verifyActionWithRAG(playerInput, character) {
 }
 
 /**
- * Execute Combat Turn with Full LLM Autonomous Judgment Engine (Agentic Tool Calling Mode)
+ * Execute Combat Turn with Full Multi-Turn Conversation Memory Buffer
  */
 export async function evaluateCombatAction({
   playerInput,
@@ -107,6 +107,7 @@ export async function evaluateCombatAction({
   enemy,
   diceRoll,
   statBonus,
+  recentHistory,
   apiKey,
   proxyUrl
 }) {
@@ -141,20 +142,23 @@ export async function evaluateCombatAction({
   let enemyHitSuccess = (enemyDiceRoll === 20) ? true : (enemyDiceRoll === 1) ? false : (enemyDiceRoll >= enemyAtkDc);
   let playerDamageTaken = enemyHitSuccess ? (Math.floor(Math.random() * 6) + 1 + Math.max(1, (enemy?.atk || 4) - Math.floor((character.stats.str - 10) / 4))) : 0;
 
-  // Full LLM Autonomous Prompt (LLM acts as Game Master, Intent Judge, Skill Resolver & Story Teller)
+  // Full Prompt with Multi-Turn Story Context Memory
   const prompt = `
-Role: You are an Expert TRPG AI Game Master & Rule Evaluator.
+Role: You are an Expert TRPG AI Game Master & Novelist.
 Character: "${character.name}" (${character.raceName} ${character.className})
 Target Enemy: "${enemy ? enemy.name : '적'}" (HP: ${enemy ? enemy.hp : 10})
 
-Player Input: "${playerInput}"
+Recent Story History (Continuous Conversation Buffer):
+${recentHistory || '(Encounter just began)'}
+
+Current Turn Player Action: "${playerInput}"
 Dice Roll: D20 = ${diceRoll} (Stat Bonus: +${statBonus}, Total: ${totalRoll}, DC: ${dc}) -> Outcome: ${isSuccess ? "SUCCESS" : "FAIL"}
 
 Instructions for AI Game Master:
-1. Analyze the player's intent in "${playerInput}".
-2. Determine "isMultiTarget": Set true IF the action targets multiple/all enemies at once (e.g. "둘 다", "양쪽", "전체", "회오리 베기", "광역").
+1. Read Recent Story History and ensure the story flows CONTINUOUSLY and seamlessly from prior events!
+2. Determine "isMultiTarget": Set true IF current action hits multiple/all enemies at once (e.g. "둘 다", "전체", "양쪽", "회오리", "모두").
 3. Determine "actionCategory": Choose one of ["ATTACK", "CHARM", "DEFENSE", "HEAL", "DEBUFF", "AOE", "SPECIAL_SKILL"].
-4. Determine "cancelEnemyCounter": Set true IF the action (Dodge, Parrying, Charm, Stun, Healing) prevents/blocks the enemy's counterattack.
+4. Determine "cancelEnemyCounter": Set true IF current action (Dodge, Parrying, Charm, Stun, Healing) prevents/blocks enemy counterattack.
 5. Write vivid Korean dark fantasy prose for "playerNarration" and "enemyNarration".
 
 Return ONLY valid JSON matching this schema:
@@ -233,7 +237,7 @@ Return ONLY valid JSON matching this schema:
       }
     }
   } catch (err) {
-    console.warn(`[LLM Autonomous Engine Error]:`, err);
+    console.warn(`[LLM Multi-Turn Engine Error]:`, err);
   }
 
   // Dynamic Local Fallback Engine

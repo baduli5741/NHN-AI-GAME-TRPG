@@ -247,12 +247,18 @@ export default function App() {
 
     const targetEnemy = enemies.find(e => e.id === selectedTargetId) || enemies.find(e => e.hp > 0) || enemy;
 
+    const recentHistoryText = storyHistory
+      .slice(-6)
+      .map(h => h.text)
+      .join('\n');
+
     const result = await evaluateCombatAction({
       playerInput: effectiveInput,
       character,
       enemy: targetEnemy,
       diceRoll,
       statBonus,
+      recentHistory: recentHistoryText,
       apiKey,
       proxyUrl
     });
