@@ -46,6 +46,8 @@ export function verifyActionWithRAG(playerInput, character) {
   let statToUse = 'STR';
   let baseDc = 10;
 
+  const isMultiTargetAction = inputLower.includes('둘 다') || inputLower.includes('둘다') || inputLower.includes('양쪽') || inputLower.includes('동시에') || inputLower.includes('전체') || inputLower.includes('모두') || inputLower.includes('둘을') || inputLower.includes('둘에게') || inputLower.includes('광역') || inputLower.includes('회오리') || inputLower.includes('휩쓸');
+
   if (inputLower.includes('매혹') || inputLower.includes('유혹') || inputLower.includes('조종') || inputLower.includes('지배') || inputLower.includes('설득') || inputLower.includes('서로') || inputLower.includes('공격하게') || inputLower.includes('싸우게') || inputLower.includes('회유')) {
     actionCategory = 'CHARM_MIND_CONTROL';
     statToUse = 'WIS';
@@ -79,7 +81,7 @@ export function verifyActionWithRAG(playerInput, character) {
     '스킬', '송곳니', '흡혈', '불굴', '바위', '정령', '룬', '화염', '포션',
     '약물', '막는다', '베어', '차다', '던진다', '검', '활', '마법', '창',
     '매혹', '유혹', '조종', '지배', '설득', '공격하게', '패링', '숨다', '치료',
-    '기름통', '횃불', '실명'
+    '기름통', '횃불', '실명', '둘 다', '양쪽'
   ];
 
   const isStandardAction = standardKeywords.some(kw => inputLower.includes(kw));
@@ -91,7 +93,8 @@ export function verifyActionWithRAG(playerInput, character) {
     statToUse,
     baseDc,
     isCustomUnregistered,
-    isCharmAction: actionCategory === 'CHARM_MIND_CONTROL'
+    isCharmAction: actionCategory === 'CHARM_MIND_CONTROL',
+    isMultiTargetAction
   };
 }
 
@@ -110,7 +113,7 @@ export async function evaluateCombatAction({
   const activeKey = (apiKey && apiKey.trim()) || DEFAULT_GEMINI_KEY || DEMO_FALLBACK_KEY;
   const totalRoll = diceRoll + statBonus;
   const ragAnalysis = verifyActionWithRAG(playerInput, character);
-  const { actionCategory, baseDc: dc } = ragAnalysis;
+  const { actionCategory, baseDc: dc, isMultiTargetAction } = ragAnalysis;
 
   // D20 Absolute Rules
   let isSuccess = false;
@@ -182,22 +185,19 @@ export async function evaluateCombatAction({
 Role: You are a Dark Fantasy TRPG Game Master and Novelist.
 Character: "${character.name}" (${character.raceName} ${character.className})
 Target Enemy: "${enemy ? enemy.name : '적'}" (HP: ${enemy ? enemy.hp : 10})
+Multi-Target AoE Mode: ${isMultiTargetAction ? "YES (Player is attacking multiple/all enemies at once!)" : "NO"}
 
 Action Execution Result:
 - Player Action: "${playerInput}"
 - Action Category: ${actionCategory}
 - Dice Roll: D20 = ${diceRoll} (Stat Bonus: +${statBonus}, Total: ${totalRoll}, DC: ${dc})
 - Outcome: ${isCritSuccess ? "NATURAL 20 CRITICAL SUCCESS!" : isSuccess ? "SUCCESS" : isCritFail ? "NATURAL 1 CRITICAL FAIL!" : "FAIL"}
-- Damage Dealt: ${damageDealt} | Heal Amount: ${healAmount}
+- Damage Dealt: ${damageDealt} (Applied to ${isMultiTargetAction ? "ALL enemies simultaneously" : "target enemy"}) | Heal Amount: ${healAmount}
 - Enemy Counter Attack: ${cancelEnemyCounter ? "CANCELLED / BLOCKED BY PLAYER ACTION" : enemyHitSuccess ? `HIT (Damage to Player: ${playerDamageTaken})` : "MISSED/DODGED"}
 
 Instructions:
 1. Write vivid, dramatic Korean dark-fantasy story paragraphs for BOTH player action and enemy outcome.
-2. Respect the action category:
-   - If HEAL_ITEM_USE & SUCCESS: Describe drinking potion and feeling wounds close up.
-   - If DEFENSE_DODGE & SUCCESS: Describe nimbly parrying/dodging the enemy strike.
-   - If CHARM_MIND_CONTROL & SUCCESS: Describe the enemy getting hypnotized and attacking another enemy.
-   - If DEBUFF_STATUS & SUCCESS: Describe blinding/tripping the enemy.
+2. If Multi-Target Mode is YES & SUCCESS: Describe the broad sweeping strike hitting multiple enemies at once!
 Return ONLY valid JSON matching this schema:
 {
   "playerNarration": "...",
@@ -225,7 +225,10 @@ Return ONLY valid JSON matching this schema:
       if (rawText) {
         const parsed = JSON.parse(rawText);
         
-        let playerLogText = buildSystemPlayerLog({ actionCategory, isSuccess, isCritSuccess, isCritFail, dc, diceRoll, statBonus, statName: ragAnalysis.statToUse, damageDealt, healAmount });
+        let playerLogText = isMultiTargetAction && isSuccess
+          ? `[플레이어 다중/광역 공격 성공! 💥] 주사위 ${diceRoll} (${ragAnalysis.statToUse} +${statBonus}) ➔ 적 무리 전체(둘 다)에게 각각 ${damageDealt}의 피해를 입혔습니다!`
+          : buildSystemPlayerLog({ actionCategory, isSuccess, isCritSuccess, isCritFail, dc, diceRoll, statBonus, statName: ragAnalysis.statToUse, damageDealt, healAmount });
+
         let enemyLogText = buildSystemEnemyLog({ actionCategory, isSuccess, enemyHitSuccess, enemyName: enemy?.name, enemyDiceRoll, enemyAtkDc, playerDamageTaken, characterName: character.name });
 
         return {
@@ -240,6 +243,7 @@ Return ONLY valid JSON matching this schema:
           playerNarration: parsed.playerNarration || `${character.name}은(는) "${playerInput}" 행동을 진행합니다.`,
           enemyNarration: parsed.enemyNarration || `${enemy ? enemy.name : '적'}이 반응합니다.`,
           damageDealt,
+          isMultiTarget: isMultiTargetAction && isSuccess,
           playerHpChange: healAmount > 0 ? healAmount : (enemyHitSuccess ? -playerDamageTaken : 0),
           isTrolling: false
         };
@@ -252,7 +256,10 @@ Return ONLY valid JSON matching this schema:
   }
 
   // Dynamic Local Fallback Engine
-  let playerLogText = buildSystemPlayerLog({ actionCategory, isSuccess, isCritSuccess, isCritFail, dc, diceRoll, statBonus, statName: ragAnalysis.statToUse, damageDealt, healAmount });
+  let playerLogText = isMultiTargetAction && isSuccess
+    ? `[플레이어 다중/광역 공격 성공! 💥] 주사위 ${diceRoll} (${ragAnalysis.statToUse} +${statBonus}) ➔ 적 무리 전체(둘 다)에게 각각 ${damageDealt}의 피해를 입혔습니다!`
+    : buildSystemPlayerLog({ actionCategory, isSuccess, isCritSuccess, isCritFail, dc, diceRoll, statBonus, statName: ragAnalysis.statToUse, damageDealt, healAmount });
+
   let enemyLogText = buildSystemEnemyLog({ actionCategory, isSuccess, enemyHitSuccess, enemyName: enemy?.name, enemyDiceRoll, enemyAtkDc, playerDamageTaken, characterName: character.name });
   let { localPlayerNarr, localEnemyNarr } = buildLocalNarrativeFallback({ actionCategory, isSuccess, isCritSuccess, isCritFail, characterName: character.name, enemyName: enemy?.name || '적', playerInput, damageDealt, healAmount, playerDamageTaken });
 
@@ -268,6 +275,7 @@ Return ONLY valid JSON matching this schema:
     playerNarration: localPlayerNarr,
     enemyNarration: localEnemyNarr,
     damageDealt,
+    isMultiTarget: isMultiTargetAction && isSuccess,
     playerHpChange: healAmount > 0 ? healAmount : (enemyHitSuccess ? -playerDamageTaken : 0),
     isTrolling: false
   };

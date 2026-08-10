@@ -275,14 +275,15 @@ export default function App() {
       newLogs.push({ id: `combat_${now}_e_narr`, type: 'narration', text: res.enemyNarration });
     }
 
-    // Handle Individual Target Damage & Defeat
+    // Handle Individual or Multi-Target AoE Damage & Defeat
     if (res.damageDealt > 0 && enemies.length > 0) {
       const targetId = res.targetEnemyId || selectedTargetId;
+      const isMulti = res.isMultiTarget;
       let allDead = false;
 
       setEnemies(prev => {
         const nextList = prev.map(e => {
-          if (e.id === targetId) {
+          if (isMulti || e.id === targetId) {
             const nextHp = Math.max(0, e.hp - res.damageDealt);
             return { ...e, hp: nextHp };
           }
@@ -293,17 +294,29 @@ export default function App() {
         return nextList;
       });
 
-      const updatedTarget = enemies.find(e => e.id === targetId);
-      if (updatedTarget && (updatedTarget.hp - res.damageDealt) <= 0) {
-        newLogs.push({
-          id: `combat_${now}_kill_target`,
-          type: 'system_event',
-          text: `[적 처치! ⚔️] ${updatedTarget.name}을(를) 완벽히 쓰러뜨렸습니다!`
+      if (isMulti) {
+        enemies.forEach(e => {
+          if (e.hp > 0 && (e.hp - res.damageDealt) <= 0) {
+            newLogs.push({
+              id: `combat_${now}_kill_${e.id}`,
+              type: 'system_event',
+              text: `[적 처치! ⚔️] ${e.name}을(를) 광역 공격으로 완벽히 쓰러뜨렸습니다!`
+            });
+          }
         });
+      } else {
+        const updatedTarget = enemies.find(e => e.id === targetId);
+        if (updatedTarget && (updatedTarget.hp - res.damageDealt) <= 0) {
+          newLogs.push({
+            id: `combat_${now}_kill_target`,
+            type: 'system_event',
+            text: `[적 처치! ⚔️] ${updatedTarget.name}을(를) 완벽히 쓰러뜨렸습니다!`
+          });
 
-        const nextLiving = enemies.find(e => e.id !== targetId && e.hp > 0);
-        if (nextLiving) {
-          setSelectedTargetId(nextLiving.id);
+          const nextLiving = enemies.find(e => e.id !== targetId && e.hp > 0);
+          if (nextLiving) {
+            setSelectedTargetId(nextLiving.id);
+          }
         }
       }
 
