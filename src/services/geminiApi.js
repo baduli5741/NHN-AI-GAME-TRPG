@@ -205,8 +205,8 @@ Return ONLY valid JSON matching this schema:
 }
 `;
 
-  // Models to try sequentially for maximum reliability across key types
-  const modelsToTry = ['gemini-1.5-flash', 'gemini-2.0-flash', 'gemini-1.5-pro'];
+  // Priority Model: gemini-2.5-flash (Status 200 OK on Google API)
+  const modelsToTry = ['gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-2.5-pro'];
 
   for (const modelName of modelsToTry) {
     try {
@@ -245,9 +245,11 @@ Return ONLY valid JSON matching this schema:
             isTrolling: false
           };
         }
+      } else {
+        console.warn(`Model ${modelName} returned status ${response.status}`);
       }
     } catch (err) {
-      console.warn(`Model ${modelName} call failed, trying next model:`, err);
+      console.warn(`Model ${modelName} fetch error:`, err);
     }
   }
 
