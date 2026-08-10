@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Dices, AlertTriangle, ShieldAlert, Sword } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Dices, AlertTriangle, ShieldAlert, Sword, X } from 'lucide-react';
 import { verifyActionWithRAG } from '../services/geminiApi';
 
 export default function CombatConsole({
@@ -12,13 +12,24 @@ export default function CombatConsole({
   const [pendingText, setPendingText] = useState(null);
   const [showWarningModal, setShowWarningModal] = useState(false);
 
+  // ESC Key Listener for warning modal
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape' && showWarningModal) {
+        setShowWarningModal(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [showWarningModal]);
+
   const handleSubmit = (e) => {
     e?.preventDefault();
     if (!inputText.trim() || disabled) return;
 
     const trimmed = inputText.trim();
     // Check if this action is an unregistered custom skill
-    const verification = verifyActionWithRAG(trimmed, character || { race: 'vampire' });
+    const verification = verifyActionWithRAG(trimmed, character || { race: 'human' });
 
     if (verification.isCustomUnregistered) {
       setPendingText(trimmed);
@@ -50,17 +61,20 @@ export default function CombatConsole({
                 <AlertTriangle size={24} className="text-gold" />
                 <h3>미등록 커스텀 행동 경고</h3>
               </div>
+              <button className="btn-close-icon" onClick={() => setShowWarningModal(false)}>
+                <X size={18} />
+              </button>
             </div>
 
             <div className="info-box warn">
               <ShieldAlert size={20} className="text-gold" />
               <p>
-                입력하신 <strong>"{pendingText}"</strong> 행동은 표준 룰북 스킬 목록에 등록되어 있지 않은 변칙적 행동입니다!
+                입력하신 <strong>"{pendingText}"</strong> 행동은 표준 룰북 스킬/행동 키워드 목록에 미등록된 변칙 커스텀 행동입니다!
               </p>
             </div>
 
             <p className="warn-text-desc">
-              AI 던전 마스터가 판정을 왜곡하거나 고장 반응을 일으킬 가능성이 있습니다. 그래도 위험을 감수하고 실행하시겠습니까?
+              AI 던전 마스터가 판정을 왜곡하거나 고장 반응을 일으킬 가능성이 있습니다. 그래도 위험을 감수하고 실행하시겠습니까? (ESC로 취소)
             </p>
 
             <div className="modal-actions">
@@ -69,14 +83,14 @@ export default function CombatConsole({
                 className="btn-cancel"
                 onClick={() => setShowWarningModal(false)}
               >
-                취소 및 수정
+                취소 및 수정 (ESC)
               </button>
               <button
                 type="button"
                 className="btn-confirm-action"
                 onClick={() => executeAction(pendingText)}
               >
-                위험 감수하고 실행
+                ⚠️ 위험 감수하고 실행
               </button>
             </div>
           </div>

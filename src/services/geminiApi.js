@@ -34,9 +34,16 @@ export function verifyActionWithRAG(playerInput, character) {
     baseDc = 12;
   }
 
-  // Check if this action is NOT in standard skills or presets (unregistered skill)
-  const isPreset = inputLower.includes('내리친다') || inputLower.includes('회피') || inputLower.includes('발동');
-  const isCustomUnregistered = !isPreset;
+  // Check if this action is a standard combat verb/skill or preset
+  const standardActionKeywords = [
+    '내려친다', '내리친다', '공격', '베기', '찌르기', '휘두른다', '강타', '타격',
+    '사격', '쏘다', '주문', '시전', '방어', '회피', '도망', '세이렌', '발동',
+    '스킬', '송곳니', '흡혈', '불굴', '바위', '정령', '룬', '화염', '포션',
+    '약물', '막는다', '베어', '차다', '던진다', '검', '활', '마법', '창'
+  ];
+
+  const isStandardAction = standardActionKeywords.some(kw => inputLower.includes(kw));
+  const isCustomUnregistered = !isStandardAction;
 
   const isTrolling = inputLower.includes('즉사') || inputLower.includes('초능력') || inputLower.includes('운석') || inputLower.includes('신 소환') || inputLower.includes('세상을 파괴');
 
