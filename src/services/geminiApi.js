@@ -18,15 +18,20 @@ export function verifyActionWithRAG(playerInput, character) {
         penaltyHp: 2,
         statToUse: 'DEX',
         baseDc: 15,
-        isCustomUnregistered: true
+        isCustomUnregistered: true,
+        isCharmAction: false
       };
     }
   }
 
   let statToUse = 'STR';
   let baseDc = 10;
+  const isCharmAction = inputLower.includes('매혹') || inputLower.includes('유혹') || inputLower.includes('조종') || inputLower.includes('지배') || inputLower.includes('설득') || inputLower.includes('서로') || inputLower.includes('공격하게') || inputLower.includes('싸우게');
 
-  if (inputLower.includes('도망') || inputLower.includes('회피') || inputLower.includes('숨') || inputLower.includes('기습') || inputLower.includes('다리')) {
+  if (isCharmAction) {
+    statToUse = 'WIS';
+    baseDc = 12;
+  } else if (inputLower.includes('도망') || inputLower.includes('회피') || inputLower.includes('숨') || inputLower.includes('기습') || inputLower.includes('다리')) {
     statToUse = 'DEX';
     baseDc = 12;
   } else if (inputLower.includes('마법') || inputLower.includes('주문') || inputLower.includes('분석') || inputLower.includes('속임수') || inputLower.includes('흡수')) {
@@ -39,7 +44,8 @@ export function verifyActionWithRAG(playerInput, character) {
     '내려친다', '내리친다', '공격', '베기', '찌르기', '휘두른다', '강타', '타격',
     '사격', '쏘다', '주문', '시전', '방어', '회피', '도망', '세이렌', '발동',
     '스킬', '송곳니', '흡혈', '불굴', '바위', '정령', '룬', '화염', '포션',
-    '약물', '막는다', '베어', '차다', '던진다', '검', '활', '마법', '창'
+    '약물', '막는다', '베어', '차다', '던진다', '검', '활', '마법', '창',
+    '매혹', '유혹', '조종', '지배', '설득', '공격하게'
   ];
 
   const isStandardAction = standardActionKeywords.some(kw => inputLower.includes(kw));
@@ -54,7 +60,8 @@ export function verifyActionWithRAG(playerInput, character) {
       reason: "차원을 비틀어 상대를 즉사시키는 신성 권능은 발동하지 않습니다. 고블린이 당신의 황당한 표정을 보며 비웃습니다!",
       statToUse: 'WIS',
       baseDc: 30,
-      isCustomUnregistered: true
+      isCustomUnregistered: true,
+      isCharmAction: false
     };
   }
 
@@ -62,12 +69,13 @@ export function verifyActionWithRAG(playerInput, character) {
     isValidSkill: true,
     statToUse,
     baseDc,
-    isCustomUnregistered
+    isCustomUnregistered,
+    isCharmAction
   };
 }
 
 /**
- * Execute Combat Turn with D20 Absolute Rules (Nat 20 = Always Success, Nat 1 = Always Fail) & Damage Dice
+ * Execute Combat Turn with D20 Absolute Rules & Smart Charm / Mind Control Action Logic
  */
 export async function evaluateCombatAction({
   playerInput,
@@ -81,10 +89,8 @@ export async function evaluateCombatAction({
   const activeKey = apiKey || DEFAULT_GEMINI_KEY;
   const totalRoll = diceRoll + statBonus;
   const ragAnalysis = verifyActionWithRAG(playerInput, character);
+  const isCharmAction = ragAnalysis.isCharmAction;
 
-  // ABSOLUTE D20 RULES:
-  // 1. DiceRoll === 20 -> NATURAL 20 CRITICAL SUCCESS (Regardless of DC or minus bonuses!)
-  // 2. DiceRoll === 1 -> NATURAL 1 CRITICAL FAIL (Regardless of DC or high bonuses!)
   let isSuccess = false;
   let isCritSuccess = false;
   let isCritFail = false;
@@ -107,18 +113,21 @@ export async function evaluateCombatAction({
 
   if (isSuccess) {
     damageRollValue = Math.floor(Math.random() * 8) + 1; // 1d8
-    damageDealt = damageRollValue + Math.max(1, Math.floor((character.stats[ragAnalysis.statToUse.toLowerCase()] - 10) / 2));
+    damageDealt = damageRollValue + Math.max(1, Math.floor(((character.stats[ragAnalysis.statToUse.toLowerCase()] || 10) - 10) / 2));
     if (isCritSuccess) {
       damageDealt += 8; // Double critical bonus
     }
   }
 
-  // Enemy Turn Counter Attack (If enemy is alive)
+  // Enemy Turn Counter Attack Calculation
   const enemyDiceRoll = Math.floor(Math.random() * 20) + 1;
   const enemyAtkDc = 10 + Math.floor((character.stats.dex - 10) / 2);
   let enemyHitSuccess = false;
 
-  if (enemyDiceRoll === 20) {
+  if (isCharmAction && isSuccess) {
+    // Charm action succeeds! Enemy is charmed and attacks another enemy, NOT the player!
+    enemyHitSuccess = false;
+  } else if (enemyDiceRoll === 20) {
     enemyHitSuccess = true;
   } else if (enemyDiceRoll === 1) {
     enemyHitSuccess = false;
@@ -136,18 +145,21 @@ export async function evaluateCombatAction({
   const prompt = `
 Role: You are a Dark Fantasy TRPG Game Master and Novelist.
 Character: "${character.name}" (${character.raceName} ${character.className})
-Enemy: "${enemy ? enemy.name : '적'}" (HP: ${enemy ? enemy.hp : 10})
+Target Enemy: "${enemy ? enemy.name : '적'}" (HP: ${enemy ? enemy.hp : 10})
 
 Action Execution Result:
-- Player Action: "${playerInput}"
+- Player Action: "${playerInput}" (Stat Used: ${ragAnalysis.statToUse})
+- Action Category: ${isCharmAction ? "CHARM / MIND CONTROL / INACTION" : "COMBAT ATTACK"}
 - Dice Roll: D20 = ${diceRoll} (Stat Bonus: +${statBonus}, Total: ${totalRoll}, DC: ${dc})
 - Roll Outcome: ${isCritSuccess ? "NATURAL 20 CRITICAL SUCCESS!" : isSuccess ? "SUCCESS" : isCritFail ? "NATURAL 1 CRITICAL FAIL!" : "FAIL"}
-- Damage Dealt to Enemy: ${damageDealt} (Damage Roll: ${damageRollValue})
-- Enemy Counter Attack: D20 = ${enemyDiceRoll} vs Player Dodge DC = ${enemyAtkDc} ➔ ${enemyHitSuccess ? `HIT (Damage to Player: ${playerDamageTaken})` : "MISSED/DODGED"}
+- Damage Dealt: ${damageDealt}
+- Enemy Counter Attack: ${isCharmAction && isSuccess ? "CANCELLED (Enemy is charmed/mind controlled and attacks another enemy instead of player!)" : enemyHitSuccess ? `HIT (Damage to Player: ${playerDamageTaken})` : "MISSED/DODGED"}
 
 Instructions:
-Write vivid, dramatic, custom Korean dark-fantasy story paragraphs for BOTH the player's action and enemy's counter-attack.
-Do NOT use generic templates. Adapt specifically to what the player typed ("${playerInput}").
+1. Write vivid, dramatic, custom Korean dark-fantasy story paragraphs for BOTH player's action and enemy's counter-attack.
+2. If Player Action involves Charming/Mind-controlling Enemy A to attack Enemy B ("${playerInput}") and outcome is SUCCESS:
+   - Describe Enemy A getting hypnotized/charmed and turning its weapon on another enemy instead of the player!
+   - Do NOT describe Enemy A counterattacking the player when the charm action succeeds!
 Return ONLY valid JSON matching this schema:
 {
   "playerNarration": "...",
@@ -156,7 +168,7 @@ Return ONLY valid JSON matching this schema:
 `;
 
   try {
-    const modelName = 'gemini-3.5-flash';
+    const modelName = 'gemini-2.0-flash';
     const endpoint = proxyUrl || `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${activeKey}`;
     let response = await fetch(endpoint, {
       method: 'POST',
@@ -185,13 +197,17 @@ Return ONLY valid JSON matching this schema:
       if (rawText) {
         const parsed = JSON.parse(rawText);
         
-        let playerLogText = isCritSuccess
-          ? `[플레이어 행동] 🎯 주사위 20 [대성공! CRITICAL] | 난이도 DC ${dc} ➔ 피해량 ${damageDealt} (데미지롤 ${damageRollValue} + 보너스)`
+        let playerLogText = isCharmAction && isSuccess
+          ? `[플레이어 매혹/조종 성공! ✨] 주사위 ${diceRoll} (WIS 보너스 +${statBonus}) ➔ ${enemy ? enemy.name : '적'}을(를) 정신 지배/매혹하였습니다!`
+          : isCritSuccess
+          ? `[플레이어 행동] 🎯 주사위 20 [대성공! CRITICAL] | 난이도 DC ${dc} ➔ 피해량 ${damageDealt}`
           : isCritFail
           ? `[플레이어 행동] 💥 주사위 1 [대실패! CRITICAL FAIL] | 난이도 DC ${dc} ➔ 실패`
           : `[플레이어 행동] 난이도 ${dc}, 주사위 ${diceRoll}, ${ragAnalysis.statToUse} 보너스 +${statBonus}. 결과: ${isSuccess ? `성공! (데미지 ${damageDealt})` : '실패!'}`;
 
-        let enemyLogText = enemyHitSuccess
+        let enemyLogText = isCharmAction && isSuccess
+          ? `[적 내분 발동 ⚔️] 매혹된 ${enemy ? enemy.name : '적'}이 플레이어를 공격하지 않고 아군을 공격합니다!`
+          : enemyHitSuccess
           ? `[적 반격] ${enemy ? enemy.name : '적'}의 공격 (데미지 ${playerDamageTaken}) | 명중 주사위 ${enemyDiceRoll} vs 회피 DC ${enemyAtkDc} ➔ 명중!`
           : `[적 반격] ${enemy ? enemy.name : '적'}의 공격 | 명중 주사위 ${enemyDiceRoll} vs 회피 DC ${enemyAtkDc} ➔ ${character.name} 회피 성공!`;
 
@@ -217,17 +233,23 @@ Return ONLY valid JSON matching this schema:
   }
 
   // Dynamic Fallback
-  let playerLogText = isCritSuccess
+  let playerLogText = isCharmAction && isSuccess
+    ? `[플레이어 매혹/조종 성공! ✨] 주사위 ${diceRoll} (WIS 보너스 +${statBonus}) ➔ ${enemy ? enemy.name : '적'}을(를) 정신 지배/매혹하였습니다!`
+    : isCritSuccess
     ? `[플레이어 행동] 🎯 주사위 20 [대성공! CRITICAL] | 난이도 DC ${dc} ➔ 피해량 ${damageDealt}`
     : isCritFail
     ? `[플레이어 행동] 💥 주사위 1 [대실패! CRITICAL FAIL] | 난이도 DC ${dc} ➔ 실패`
     : `[플레이어 행동] 난이도 ${dc}, 주사위 ${diceRoll}, ${ragAnalysis.statToUse} 보너스 +${statBonus}. 결과: ${isSuccess ? `성공! (데미지 ${damageDealt})` : '실패!'}`;
 
-  let enemyLogText = enemyHitSuccess
+  let enemyLogText = isCharmAction && isSuccess
+    ? `[적 내분 발동 ⚔️] 매혹된 ${enemy ? enemy.name : '적'}이 플레이어를 공격하지 않고 아군을 공격합니다!`
+    : enemyHitSuccess
     ? `[적 반격] ${enemy ? enemy.name : '적'}의 공격 (데미지 ${playerDamageTaken}) | 명중 주사위 ${enemyDiceRoll} vs 회피 DC ${enemyAtkDc} ➔ 명중!`
     : `[적 반격] ${enemy ? enemy.name : '적'}의 공격 | 명중 주사위 ${enemyDiceRoll} vs 회피 DC ${enemyAtkDc} ➔ ${character.name} 회피 성공!`;
 
-  let localPlayerNarr = isCritSuccess
+  let localPlayerNarr = isCharmAction && isSuccess
+    ? `${character.name}은(는) 지혜와 주술적 매력을 발동하여 "${playerInput}" 행동을 완벽하게 성공시켰습니다! 매혹에 빠진 ${enemy ? enemy.name : '적'}은 이성을 잃고 핏빛 눈동자로 아군을 공격하기 시작했습니다.`
+    : isCritSuccess
     ? `${character.name}의 주사위가 20(대성공)을 기록합니다! "${playerInput}" 행동이 완벽하게 적중하여 ${enemy ? enemy.name : '적'}에게 ${damageDealt}의 치명적인 데미지를 가했습니다!`
     : isCritFail
     ? `${character.name}의 주사위가 1(대실패)을 기록합니다! "${playerInput}" 시도가 바닥 턱에 걸려 허무하게 빗나가고 말았습니다.`
@@ -235,7 +257,9 @@ Return ONLY valid JSON matching this schema:
     ? `${character.name}은(는) 침착하게 "${playerInput}" 행동을 실행하여 ${enemy ? enemy.name : '적'}에게 ${damageDealt}의 데미지를 가했습니다.`
     : `${character.name}은(는) "${playerInput}" 행동을 시도했지만, ${enemy ? enemy.name : '적'}의 방어막을 뚫지 못했습니다.`;
 
-  let localEnemyNarr = enemyHitSuccess
+  let localEnemyNarr = isCharmAction && isSuccess
+    ? `매혹에 빠진 ${enemy ? enemy.name : '적'}은 플레이어를 공격하지 못하고, 옆에 있던 적에게 무기를 휘두르며 치명적인 내분을 일으켰습니다!`
+    : enemyHitSuccess
     ? `${enemy ? enemy.name : '적'}이 즉시 무섭게 반격해 왔고, ${character.name}은(는) ${playerDamageTaken}의 피해를 입었습니다.`
     : `${enemy ? enemy.name : '적'}이 무기를 휘둘렀지만, ${character.name}은(는) 여유롭게 피하며 공격을 회피했습니다.`;
 
@@ -250,21 +274,6 @@ Return ONLY valid JSON matching this schema:
     enemySystemLog: enemyLogText,
     playerNarration: localPlayerNarr,
     enemyNarration: localEnemyNarr,
-    damageDealt,
-    playerHpChange: enemyHitSuccess ? -playerDamageTaken : 0,
-    isTrolling: false
-  };
-
-  return {
-    dc,
-    isSuccess,
-    isCritSuccess,
-    isCritFail,
-    damageRollValue,
-    statUsed: ragAnalysis.statToUse,
-    systemLog: playerLogText,
-    enemySystemLog: enemyLogText,
-    narrationText: `${localPlayerNarr}\n\n⚔️ [적의 반격]\n${localEnemyNarr}`,
     damageDealt,
     playerHpChange: enemyHitSuccess ? -playerDamageTaken : 0,
     isTrolling: false
