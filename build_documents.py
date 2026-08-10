@@ -154,14 +154,14 @@ def create_game_info_pdf(filename="게임 소개 및 설명 문서.pdf"):
 
     story.append(Paragraph("2. 핵심 게임 시스템", h1_style))
     story.append(Paragraph("• <b>6단계 캐릭터 커스텀 위저드</b>: 이름 ➔ 종족 ➔ 출신 배경 ➔ 시작 특성 ➔ 직업 ➔ 5PT 스탯 배분.", bullet_style))
-    story.append(Paragraph("• <b>오프렌 거점 마을 5대 상점 시설 (Town Hub)</b>: 잡화점, 대장간, 세공점, 마탑, 던전 입구 상점 및 정비 화면 제공.", bullet_style))
+    story.append(Paragraph("• <b>오프렌 거점 마을 5대 상점 시설 (Town Hub)</b>: 잡화점, 대장간, 세공점, 마탑, 던전 입구 상점 및 정비 UI 제공.", bullet_style))
     story.append(Paragraph("• <b>LLM 자율 의도 판정 & 다중 타겟(AoE) 시스템</b>: '둘 다 베어버린다' 입력 시 LLM이 광역 공격을 자율 판정하여 몬스터 2마리 체력을 동시 연산.", bullet_style))
     story.append(Paragraph("• <b>Action Chaining (한번 더) 맥락 콤보</b>: 전 턴 행동 맥락을 기억하여 '한번 더' 입력 시 이전 기술을 연속 콤보로 시전.", bullet_style))
     story.append(Paragraph("• <b>20층 던전 탐색도 & 앵커 텔레포트</b>: 노드 이동 및 탐색도(0~100%) 연출, 층별 보스 처치 시 텔레포트 앵커 해금.", bullet_style))
 
     story.append(Paragraph("3. 플레이 방법 및 종료 조건", h1_style))
     story.append(Paragraph("<b>[목표]</b> 20층 최하층으로 이동하여 심연의 흑룡 루인을 토벌하고 왕국의 평화를 되찾는 것입니다.", body_style))
-    story.append(Paragraph("<b>[조작법]</b> 마우스 클릭 (마을 시설 및 노드 지도 이동) + 자유 텍스트 입력 (전투 시 자유로운 행동 시전). 모든 상점 및 정비 화면은 <b>ESC 키</b> 단축키로 즉시 닫기 지원.", body_style))
+    story.append(Paragraph("<b>[조작법]</b> 마우스 클릭 (마을 시설 및 노드 지도 이동) + 자유 텍스트 입력 (전투 시 자유로운 행동 시전). 모든 상점 및 정비 UI는 <b>ESC 키</b> 단축키로 즉시 닫기 지원.", body_style))
     story.append(Paragraph("<b>[종료 조건]</b> 플레이어 HP 0 달성 시 사망 페널티(10% 골드 손실 후 마을 복귀). 최하층 보스 처치 시 최종 승리.", body_style))
 
     story.append(Paragraph("4. 실행 및 배포 환경", h1_style))
@@ -237,7 +237,7 @@ def create_ai_tech_pdf(filename="AI 활용 기술 문서.pdf"):
     story.append(Paragraph("3. 룰북 지식 증강 (Rulebook-Augmented Generation / RAG) & 외부 에셋 출처", h1_style))
     story.append(Paragraph("• <b>구조화 룰북 프롬프트 증강 (Structured Rulebook RAG — rulebook.json)</b>: 룰북 데이터셋에서 유저 행동과 관련된 종족 제약(드워프/흡혈용 송곳니 유무) 및 스탯 DC 규칙을 탐색/추출(Retrieval)하여 프롬프트 및 연산 엔진에 증강(Augment) 주입. (예: 송곳니 없는 종족이 물기를 시도하면 룰북 탐색 검증으로 HP -2 치아 상해 페널티 부여).", bullet_style))
     story.append(Paragraph("• <b>AI 생성 이미지 에셋 9종</b>: Google Gemini / Imagen으로 생성된 고화질 배경(핏빛 안개 숲, 원혼의 묘지, 마탑 등) 및 몬스터 아트를 <code>public/images/</code>에 배포.", bullet_style))
-    story.append(Paragraph("• <b>오픈소스 라이브러리</b>: React 18, Vite 8, Lucide React (UI 아이콘), Web Audio API (사운드 효과음 신세사이저).", bullet_style))
+    story.append(Paragraph("• <b>오픈소스 라이브러리</b>: React 18, Vite 8, Lucide React (UI 아이콘 사용).", bullet_style))
 
     doc.build(story, canvasmaker=NumberedCanvas)
     print(f"Created {filename}")
@@ -283,7 +283,7 @@ def create_team_pdf(filename="팀원 롤 기술서.pdf"):
             "• <b>Gemini 3.5 Flash LLM 자율 판단 파이프라인 구축</b>: JSON Response Schema 기반 유저 의도 자율 분류 파이프라인 개발.<br/>"
             "• <b>다회차 서사 메모리 및 액션 체이닝 엔진 구현</b>: recentHistory 버퍼 및 '한번 더' 연속 콤보 기억 알고리즘 개발.<br/>"
             "• <b>React / Vite 프론트엔드 시스템 전체 개발</b>: 6단계 캐릭터 생성 위저드, 오프렌 마을 5대 시설, 다중 몬스터 카드 UI 구현.<br/>"
-            "• <b>RAG 룰북 검증 모듈 (`rulebook.json`)</b> 및 Web Audio API 사운드 신세사이저 (`soundFx.js`) 구축.", body_style)]
+            "• <b>RAG 룰북 검증 모듈 (`rulebook.json`)</b> 및 Vercel 프록시/Base64 API 키 보안 인프라 구축.", body_style)]
     ]
     t_m1 = Table(m1_data, colWidths=[80, 130, 80, 225])
     t_m1.setStyle(TableStyle([
