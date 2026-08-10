@@ -135,7 +135,7 @@ def create_game_info_pdf(filename="게임 소개 및 설명 문서.pdf"):
         [Paragraph("<b>한 줄 소개</b>", body_style), Paragraph("Gemini 3.5 Flash LLM 자율 중재자와 D20 룰 엔진이 결합된 웹 기반 다크 판타지 TRPG", body_style)],
         [Paragraph("<b>플레이 링크</b>", body_style), Paragraph("<a href='https://baduli5741.github.io/NHN-AI-GAME-TRPG/'>https://baduli5741.github.io/NHN-AI-GAME-TRPG/</a>", body_style)],
         [Paragraph("<b>깃허브 저장소</b>", body_style), Paragraph("<a href='https://github.com/baduli5741/NHN-AI-GAME-TRPG'>https://github.com/baduli5741/NHN-AI-GAME-TRPG</a>", body_style)],
-        [Paragraph("<b>시연 영상 (YouTube)</b>", body_style), Paragraph("<a href='https://youtu.be/NHN_AI_GAME_TRPG_DEMO'>https://youtu.be/NHN_AI_GAME_TRPG_DEMO</a>", body_style)],
+        [Paragraph("<b>시연 영상 (YouTube)</b>", body_style), Paragraph("<a href='https://youtu.be/YY19K64xKcU'>https://youtu.be/YY19K64xKcU</a>", body_style)],
         [Paragraph("<b>심사 계정 초대</b>", body_style), Paragraph("dl_gameai_reviewer@nhn.com (공개 저장소 유지)", body_style)]
     ]
     t = Table(meta_data, colWidths=[120, 395])
