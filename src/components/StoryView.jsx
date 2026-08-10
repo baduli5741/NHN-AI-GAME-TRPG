@@ -16,9 +16,10 @@ export default function StoryView({
   const [enemyImgError, setEnemyImgError] = useState(false);
   const scrollRef = useRef(null);
   
+  const baseUrl = import.meta.env.BASE_URL || '/';
   const enemyHpPercent = enemy ? Math.max(0, Math.min(100, Math.round((enemy.hp / enemy.maxHp) * 100))) : 0;
-  const sceneImagePath = `/images/${currentNode.bg}.png`;
-  const enemyImagePath = enemy?.image ? `/images/${enemy.image}` : null;
+  const sceneImagePath = `${baseUrl}images/${currentNode.bg}.png`;
+  const enemyImagePath = enemy?.image ? `${baseUrl}images/${enemy.image}` : null;
 
   // Auto-scroll to bottom when new story logs arrive
   useEffect(() => {
