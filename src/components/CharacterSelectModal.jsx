@@ -222,21 +222,21 @@ export default function CharacterSelectModal({ isOpen, onSelectCharacter }) {
           {/* STEP 6: Stat Points Allocation & Summary */}
           {step === 6 && (
             <div className="wizard-pane fade-in">
-              {showConfirm && (
+              {showConfirm && bonusPoints > 0 && (
                 <div className="warn-confirm-box">
                   <div className="warn-title">
                     <AlertCircle size={20} className="text-gold" />
-                    <span>남은 능력치 포인트 경고</span>
+                    <span>미배분 능력치 포인트 안내</span>
                   </div>
                   <p>
-                    배분하지 않은 포인트가 <strong>{bonusPoints} PT</strong> 남아있습니다! 이대로 모험을 시작하시겠습니까?
+                    아직 배분하지 않은 보너스 능력치 포인트가 <strong>{bonusPoints} PT</strong> 남아있습니다! 이대로 모험을 출발하시겠습니까?
                   </p>
                   <div className="warn-actions">
-                    <button className="btn-sub-action" onClick={() => setShowConfirm(false)}>
-                      스탯 배분하기
+                    <button type="button" className="btn-cancel" onClick={() => setShowConfirm(false)}>
+                      스탯 더 배분하기
                     </button>
-                    <button className="btn-confirm-action" onClick={executeStart}>
-                      이대로 시작
+                    <button type="button" className="btn-confirm-action" onClick={executeStart}>
+                      이대로 바로 출발
                     </button>
                   </div>
                 </div>
