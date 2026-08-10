@@ -205,52 +205,50 @@ Return ONLY valid JSON matching this schema:
 }
 `;
 
-  // Priority Model: gemini-2.5-flash (Status 200 OK on Google API)
-  const modelsToTry = ['gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-2.5-pro'];
+  // Dedicated Model: gemini-3.5-flash exclusively as requested
+  const modelName = 'gemini-3.5-flash';
 
-  for (const modelName of modelsToTry) {
-    try {
-      const endpoint = proxyUrl || `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${activeKey}`;
-      const response = await fetch(endpoint, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: prompt }] }],
-          generationConfig: { responseMimeType: "application/json" }
-        })
-      });
+  try {
+    const endpoint = proxyUrl || `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${activeKey}`;
+    const response = await fetch(endpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: prompt }] }],
+        generationConfig: { responseMimeType: "application/json" }
+      })
+    });
 
-      if (response.ok) {
-        const jsonRes = await response.json();
-        const rawText = jsonRes.candidates?.[0]?.content?.parts?.[0]?.text;
-        if (rawText) {
-          const parsed = JSON.parse(rawText);
-          
-          let playerLogText = buildSystemPlayerLog({ actionCategory, isSuccess, isCritSuccess, isCritFail, dc, diceRoll, statBonus, statName: ragAnalysis.statToUse, damageDealt, healAmount });
-          let enemyLogText = buildSystemEnemyLog({ actionCategory, isSuccess, enemyHitSuccess, enemyName: enemy?.name, enemyDiceRoll, enemyAtkDc, playerDamageTaken, characterName: character.name });
+    if (response.ok) {
+      const jsonRes = await response.json();
+      const rawText = jsonRes.candidates?.[0]?.content?.parts?.[0]?.text;
+      if (rawText) {
+        const parsed = JSON.parse(rawText);
+        
+        let playerLogText = buildSystemPlayerLog({ actionCategory, isSuccess, isCritSuccess, isCritFail, dc, diceRoll, statBonus, statName: ragAnalysis.statToUse, damageDealt, healAmount });
+        let enemyLogText = buildSystemEnemyLog({ actionCategory, isSuccess, enemyHitSuccess, enemyName: enemy?.name, enemyDiceRoll, enemyAtkDc, playerDamageTaken, characterName: character.name });
 
-          return {
-            dc,
-            isSuccess,
-            isCritSuccess,
-            isCritFail,
-            damageRollValue,
-            statUsed: ragAnalysis.statToUse,
-            systemLog: playerLogText,
-            enemySystemLog: enemyLogText,
-            playerNarration: parsed.playerNarration || `${character.name}은(는) "${playerInput}" 행동을 진행합니다.`,
-            enemyNarration: parsed.enemyNarration || `${enemy ? enemy.name : '적'}이 반응합니다.`,
-            damageDealt,
-            playerHpChange: healAmount > 0 ? healAmount : (enemyHitSuccess ? -playerDamageTaken : 0),
-            isTrolling: false
-          };
-        }
-      } else {
-        console.warn(`Model ${modelName} returned status ${response.status}`);
+        return {
+          dc,
+          isSuccess,
+          isCritSuccess,
+          isCritFail,
+          damageRollValue,
+          statUsed: ragAnalysis.statToUse,
+          systemLog: playerLogText,
+          enemySystemLog: enemyLogText,
+          playerNarration: parsed.playerNarration || `${character.name}은(는) "${playerInput}" 행동을 진행합니다.`,
+          enemyNarration: parsed.enemyNarration || `${enemy ? enemy.name : '적'}이 반응합니다.`,
+          damageDealt,
+          playerHpChange: healAmount > 0 ? healAmount : (enemyHitSuccess ? -playerDamageTaken : 0),
+          isTrolling: false
+        };
       }
-    } catch (err) {
-      console.warn(`Model ${modelName} fetch error:`, err);
+    } else {
+      console.warn(`Model ${modelName} returned status ${response.status}`);
     }
+  } catch (err) {
+    console.warn(`Model ${modelName} fetch error:`, err);
   }
 
   // Dynamic Local Fallback Engine
