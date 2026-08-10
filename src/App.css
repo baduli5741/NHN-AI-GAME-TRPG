@@ -712,48 +712,146 @@ body {
   cursor: not-allowed;
 }
 
-/* Modals & Bard Intro */
-.bard-intro-box {
-  background: #1e192f;
-  border: 1px solid var(--border-gold);
-  padding: 1rem;
-  border-radius: 8px;
+/* WIZARD MODAL STYLING */
+.wizard-modal-card {
+  background: #161224;
+  border: 2px solid var(--border-gold);
+  border-radius: 12px;
+  padding: 1.5rem;
+  max-width: 680px;
+  width: 100%;
+  min-height: 520px;
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  justify-content: space-between;
+  gap: 1rem;
+  box-shadow: 0 0 40px rgba(0, 0, 0, 0.9);
+  animation: modalScale 0.25s ease-out;
 }
 
-.bard-header {
+.wizard-progress-bar {
+  display: flex;
+  gap: 0.4rem;
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 0.8rem;
+}
+
+.step-pill {
+  flex: 1;
+  text-align: center;
+  font-size: 0.75rem;
+  padding: 0.4rem 0.2rem;
+  background: #201a33;
+  border-radius: 4px;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.step-pill.active {
+  background: #3b2b63;
+  color: var(--accent-gold);
+  border: 1px solid var(--border-gold);
+}
+
+.wizard-step-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.wizard-pane {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.wizard-step-title {
+  font-size: 1.1rem;
+  color: var(--accent-gold);
+  border-left: 3px solid var(--accent-gold);
+  padding-left: 0.6rem;
+}
+
+.wizard-card {
+  min-height: 90px;
+  padding: 1rem;
+}
+
+.card-title-text {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #fff;
+}
+
+.card-stat-pill {
+  font-size: 0.75rem;
+  color: var(--accent-cyan);
+  margin-top: 0.3rem;
+}
+
+.weapon-tag {
+  font-size: 0.75rem;
+  color: var(--accent-purple);
+}
+
+.step-input-group {
+  margin-top: 1rem;
+}
+
+.hero-name-input {
+  font-size: 1.1rem;
+  padding: 0.9rem;
+}
+
+.summary-preview-card {
+  background: #231b38;
+  border: 1px solid var(--border-gold);
+  border-radius: 8px;
+  padding: 0.8rem 1rem;
+}
+
+.wizard-nav-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-top: 1px solid var(--border-color);
+  padding-top: 1rem;
+}
+
+.btn-wizard-nav {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  font-weight: 700;
-  color: var(--accent-gold);
+  gap: 0.4rem;
+  background: #2a2240;
+  border: 1px solid var(--border-color);
+  color: #fff;
+  padding: 0.6rem 1.2rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
 }
 
-.bard-story-p {
-  font-size: 0.85rem;
-  line-height: 1.5;
-  color: #cbd5e1;
+.btn-wizard-nav:hover {
+  border-color: var(--accent-gold);
+  background: #382c57;
 }
 
-.card-grid.col-4 {
-  grid-template-columns: repeat(4, 1fr);
+.btn-wizard-nav.next {
+  background: linear-gradient(90deg, #d97706, #b45309);
+  border-color: var(--accent-gold);
 }
 
-.card-grid.col-5 {
-  grid-template-columns: repeat(5, 1fr);
+/* Fade In Animation */
+.fade-in {
+  animation: fadeIn 0.3s ease;
 }
 
-.card-grid.col-3 {
-  grid-template-columns: repeat(3, 1fr);
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
-.speed-tag {
-  font-size: 0.65rem;
-  color: var(--accent-cyan);
-}
-
+/* Modals */
 .modal-overlay {
   position: fixed;
   inset: 0;
@@ -766,72 +864,16 @@ body {
   padding: 1rem;
 }
 
-.game-over-card {
-  background: #18090b;
-  border: 2px solid var(--accent-crimson);
-  border-radius: 12px;
-  padding: 2rem;
-  max-width: 480px;
-  width: 100%;
-  text-align: center;
-  box-shadow: 0 0 40px rgba(220, 38, 38, 0.5);
-  display: flex;
-  flex-direction: column;
-  gap: 1.2rem;
-}
-
-.game-over-title {
-  color: #fca5a5;
-  font-size: 1.4rem;
-  font-weight: 800;
-}
-
-.btn-retry-game {
-  background: linear-gradient(135deg, #b91c1c 0%, #991b1b 100%);
-  border: 1px solid var(--accent-crimson);
-  color: #fff;
-  font-weight: 700;
-  padding: 0.8rem 1.2rem;
-  border-radius: 8px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-}
-
-.dice-modal-card, .settings-modal-card, .map-modal-card, .char-select-card {
-  background: #161322;
-  border: 2px solid var(--border-gold);
-  border-radius: 12px;
-  padding: 1.5rem;
-  max-width: 580px;
-  width: 100%;
-  max-height: 90vh;
-  overflow-y: auto;
-  box-shadow: 0 0 30px rgba(0, 0, 0, 0.9);
-  display: flex;
-  flex-direction: column;
-  gap: 1.25rem;
-  animation: modalScale 0.25s ease-out;
-}
-
-.char-select-card.large-select-card {
-  max-width: 720px;
-}
-
 /* Responsive */
 @media (max-width: 768px) {
   .app-main-layout {
     grid-template-columns: 1fr;
   }
-  .card-grid.col-4, .card-grid.col-5, .card-grid.col-3, .town-facility-grid {
+  .card-grid.col-4, .card-grid.col-5, .card-grid.col-3, .card-grid.col-2, .town-facility-grid {
     grid-template-columns: 1fr;
   }
-  .facility-card.dungeon-portal {
-    grid-column: span 1;
-  }
-  .post-combat-actions {
-    flex-direction: column;
+  .wizard-progress-bar {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
   }
 }
