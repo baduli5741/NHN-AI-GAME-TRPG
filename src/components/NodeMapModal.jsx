@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { MapPin, X, Lock, CheckCircle, ArrowRight } from 'lucide-react';
 import nodesData from '../data/nodes.json';
 
@@ -9,6 +9,17 @@ export default function NodeMapModal({
   completedNodeIds,
   onSelectNode
 }) {
+  // ESC Key Listener
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape' && isOpen) {
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
+
   if (!isOpen) return null;
 
   const currentNode = nodesData.find(n => n.id === currentNodeId);
@@ -28,7 +39,7 @@ export default function NodeMapModal({
         </div>
 
         <p className="map-subtext">
-          원하는 지역 노드를 클릭하여 이동하세요. 이동 시 해당 지역의 이벤트나 전투가 시작됩니다.
+          원하는 지역 노드를 클릭하여 이동하세요. 이동 시 해당 지역의 이벤트나 전투가 시작됩니다. (ESC로 닫기)
         </p>
 
         {/* Node Grid Map */}

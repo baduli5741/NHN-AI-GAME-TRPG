@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ShoppingBag, Shield, Sparkles, Flame, Compass, Coins, Heart, Zap, X, ChevronRight, Anchor } from 'lucide-react';
 import rulebookData from '../data/rulebook.json';
 
@@ -10,6 +10,17 @@ export default function TownView({
 }) {
   const [activeFacility, setActiveFacility] = useState(null); // 'shop', 'blacksmith', 'jeweler', 'mageTower', 'dungeonPortal'
   const [townLog, setTownLog] = useState('오프렌 왕국의 아늑한 마을에 위치해 있습니다. 무엇을 준비하시겠습니까?');
+
+  // Listen for ESC key to close open facility modals
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape' && activeFacility) {
+        setActiveFacility(null);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [activeFacility]);
 
   // Handle Item Purchase in Shop
   const handleBuyItem = (itemName, cost, hpHeal = 0) => {
@@ -138,7 +149,7 @@ export default function TownView({
             </div>
 
             <button className="btn-modal-close" onClick={() => setActiveFacility(null)}>
-              마을로 돌아가기
+              마을로 돌아가기 (ESC)
             </button>
           </div>
         </div>
@@ -178,7 +189,7 @@ export default function TownView({
             </div>
 
             <button className="btn-modal-close" onClick={() => setActiveFacility(null)}>
-              마을로 돌아가기
+              마을로 돌아가기 (ESC)
             </button>
           </div>
         </div>
@@ -226,7 +237,7 @@ export default function TownView({
             </div>
 
             <button className="btn-modal-close" onClick={() => setActiveFacility(null)}>
-              마을로 돌아가기
+              마을로 돌아가기 (ESC)
             </button>
           </div>
         </div>
@@ -264,7 +275,7 @@ export default function TownView({
             </div>
 
             <button className="btn-modal-close" onClick={() => setActiveFacility(null)}>
-              마을로 돌아가기
+              마을로 돌아가기 (ESC)
             </button>
           </div>
         </div>
@@ -337,7 +348,7 @@ export default function TownView({
             </div>
 
             <button className="btn-modal-close" onClick={() => setActiveFacility(null)}>
-              취소
+              취소 (ESC)
             </button>
           </div>
         </div>

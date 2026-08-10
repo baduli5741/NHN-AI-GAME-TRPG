@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Settings, X, Key, ShieldCheck, Server } from 'lucide-react';
 
 export default function ApiSettingsModal({
@@ -11,6 +11,17 @@ export default function ApiSettingsModal({
 }) {
   const [localKey, setLocalKey] = useState(apiKey || '');
   const [localProxy, setLocalProxy] = useState(proxyUrl || '');
+
+  // ESC Key Listener
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape' && isOpen) {
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
 
   if (!isOpen) return null;
 
@@ -72,7 +83,7 @@ export default function ApiSettingsModal({
 
           <div className="modal-actions">
             <button type="button" className="btn-cancel" onClick={onClose}>
-              취소
+              취소 (ESC)
             </button>
             <button type="submit" className="btn-save">
               설정 저장
