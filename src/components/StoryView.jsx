@@ -19,7 +19,8 @@ export default function StoryView({
   const [enemyImgError, setEnemyImgError] = useState(false);
   const scrollRef = useRef(null);
   
-  const baseUrl = import.meta.env.BASE_URL || '/';
+  const rawBase = import.meta.env.BASE_URL || './';
+  const baseUrl = rawBase.endsWith('/') ? rawBase : `${rawBase}/`;
   const sceneImagePath = `${baseUrl}images/${currentNode.bg}.png`;
 
   // Normalize enemy list
