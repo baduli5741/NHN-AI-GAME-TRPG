@@ -232,11 +232,11 @@ export default function CharacterSelectModal({ isOpen, onSelectCharacter }) {
                     아직 배분하지 않은 보너스 능력치 포인트가 <strong>{bonusPoints} PT</strong> 남아있습니다! 이대로 모험을 출발하시겠습니까?
                   </p>
                   <div className="warn-actions">
-                    <button type="button" className="btn-cancel" onClick={() => setShowConfirm(false)}>
-                      스탯 더 배분하기
+                    <button type="button" className="btn-warn-back" onClick={() => setShowConfirm(false)}>
+                      🛠️ 스탯 배분 계속하기
                     </button>
-                    <button type="button" className="btn-confirm-action" onClick={executeStart}>
-                      이대로 바로 출발
+                    <button type="button" className="btn-warn-proceed" onClick={executeStart}>
+                      🚀 이대로 모험 시작
                     </button>
                   </div>
                 </div>
