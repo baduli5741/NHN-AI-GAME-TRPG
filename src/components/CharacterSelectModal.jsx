@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
-import { Skull, UserCheck, Plus, Minus, AlertCircle } from 'lucide-react';
+import { BookOpen, UserCheck, Plus, Minus, AlertCircle, Sparkles } from 'lucide-react';
 import rulebookData from '../data/rulebook.json';
 
 export default function CharacterSelectModal({ isOpen, onSelectCharacter }) {
-  const [selectedRace, setSelectedRace] = useState('vampire');
+  const [selectedRace, setSelectedRace] = useState('human');
+  const [selectedBg, setSelectedBg] = useState('explorer');
+  const [selectedTrait, setSelectedTrait] = useState('sword_talent');
   const [selectedClass, setSelectedClass] = useState('warrior');
   const [charName, setCharName] = useState('야스킹 호준');
 
@@ -11,7 +13,7 @@ export default function CharacterSelectModal({ isOpen, onSelectCharacter }) {
   const [allocatedStats, setAllocatedStats] = useState({
     str: 0,
     dex: 0,
-    wis: 0
+    int: 0
   });
 
   const [showConfirm, setShowConfirm] = useState(false);
@@ -19,17 +21,21 @@ export default function CharacterSelectModal({ isOpen, onSelectCharacter }) {
   if (!isOpen) return null;
 
   const raceObj = rulebookData.races.find(r => r.id === selectedRace);
+  const bgObj = rulebookData.backgrounds.find(b => b.id === selectedBg);
+  const traitObj = rulebookData.startingTraits.find(t => t.id === selectedTrait);
   const classObj = rulebookData.classes.find(c => c.id === selectedClass);
 
-  const baseStr = 10 + (raceObj?.statBonus.str || 0) + (classObj?.mainStat === 'str' ? 2 : 0);
-  const baseDex = 10 + (raceObj?.statBonus.dex || 0) + (classObj?.mainStat === 'dex' ? 2 : 0);
-  const baseWis = 10 + (raceObj?.statBonus.wis || 0) + (classObj?.mainStat === 'wis' ? 2 : 0);
+  const baseStr = 10 + (raceObj?.statBonus.str || 0) + (bgObj?.bonusStat === 'str' ? 1 : 0) + (classObj?.mainStat === 'str' ? 2 : 0);
+  const baseDex = 10 + (raceObj?.statBonus.dex || 0) + (bgObj?.bonusStat === 'dex' ? 1 : 0) + (classObj?.mainStat === 'dex' ? 2 : 0);
+  const baseInt = 10 + (raceObj?.statBonus.int || 0) + (bgObj?.bonusStat === 'int' ? 1 : 0) + (classObj?.mainStat === 'int' ? 2 : 0);
 
   const finalStats = {
     str: baseStr + allocatedStats.str,
     dex: baseDex + allocatedStats.dex,
-    wis: baseWis + allocatedStats.wis
+    int: baseInt + allocatedStats.int
   };
+
+  const speed = (raceObj?.speed || 10) + (selectedBg === 'thief' ? 2 : 0);
 
   const handleAddPoint = (statKey) => {
     if (bonusPoints > 0) {
@@ -60,31 +66,42 @@ export default function CharacterSelectModal({ isOpen, onSelectCharacter }) {
       name: charName || '야스킹 호준',
       race: selectedRace,
       raceName: raceObj.name,
+      background: selectedBg,
+      backgroundName: bgObj.name,
+      startingTrait: selectedTrait,
+      startingTraitName: traitObj.name,
       class: selectedClass,
       className: classObj.name,
       stats: finalStats,
+      speed: speed,
       hp: maxHp,
       maxHp: maxHp,
-      gold: 50
+      gold: 50 + (bgObj?.bonusGold || 0)
     });
   };
 
   return (
     <div className="modal-overlay">
-      <div className="char-select-card">
-        <div className="modal-header">
-          <div className="header-left">
-            <Skull size={24} className="text-crimson" />
-            <h2>영웅 생성 및 스탯 배분</h2>
+      <div className="char-select-card large-select-card">
+        {/* Intro Bard Story Header */}
+        <div className="bard-intro-box">
+          <div className="bard-header">
+            <BookOpen size={22} className="text-gold" />
+            <span>BALLAD: Tales Untold — 음유시인의 서사시</span>
           </div>
+          <p className="bard-story-p">
+            "역사는 서기관의 양피지에 기록되지만, 전설은 음유시인의 노래로 남겨집니다."<br />
+            시끌벅적한 선술집의 술꾼들이 100년 전 오프렌 왕국의 수도를 삼킨 거대한 던전의 영웅 이야기를 청해 듣습니다. 
+            당신이 전해줄 이야기의 주인공은 누구입니까?
+          </p>
         </div>
 
-        {/* Unused Stat Points Warning Confirmation Box */}
+        {/* Unused Stat Points Warning Box */}
         {showConfirm && (
           <div className="warn-confirm-box">
             <div className="warn-title">
               <AlertCircle size={20} className="text-gold" />
-              <span>남은 스킬포인트 경고</span>
+              <span>남은 능력치 포인트 경고</span>
             </div>
             <p>
               아직 배분하지 않은 스킬포인트가 <strong>{bonusPoints} PT</strong> 남아있습니다! 이대로 모험을 시작하시겠습니까?
@@ -101,7 +118,7 @@ export default function CharacterSelectModal({ isOpen, onSelectCharacter }) {
         )}
 
         <div className="form-group">
-          <label className="form-label">영웅 이름</label>
+          <label className="form-label">이야기 속 영웅의 이름</label>
           <input
             type="text"
             className="form-input"
@@ -111,10 +128,10 @@ export default function CharacterSelectModal({ isOpen, onSelectCharacter }) {
           />
         </div>
 
-        {/* Race Selection */}
+        {/* 1. Race Selection */}
         <div className="selection-section">
           <h3>1. 종족 선택</h3>
-          <div className="card-grid">
+          <div className="card-grid col-4">
             {rulebookData.races.map((race) => (
               <div
                 key={race.id}
@@ -123,18 +140,57 @@ export default function CharacterSelectModal({ isOpen, onSelectCharacter }) {
               >
                 <div className="option-title">
                   <span>{race.name}</span>
-                  {race.fangs && <span className="tag-fang">송곳니 보유</span>}
                 </div>
                 <p className="option-desc">{race.description}</p>
+                <small className="speed-tag">기본 속도: Speed {race.speed}</small>
               </div>
             ))}
           </div>
         </div>
 
-        {/* Class Selection */}
+        {/* 2. Background Selection */}
         <div className="selection-section">
-          <h3>2. 직업 선택</h3>
-          <div className="card-grid">
+          <h3>2. 주인공의 출신 배경 선택</h3>
+          <div className="card-grid col-5">
+            {rulebookData.backgrounds.map((bg) => (
+              <div
+                key={bg.id}
+                className={`select-option-card ${selectedBg === bg.id ? 'active' : ''}`}
+                onClick={() => setSelectedBg(bg.id)}
+              >
+                <div className="option-title">
+                  <span>{bg.name}</span>
+                </div>
+                <p className="option-desc">{bg.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* 3. Starting Trait Selection */}
+        <div className="selection-section">
+          <h3>3. 시작 특성 선택</h3>
+          <div className="card-grid col-3">
+            {rulebookData.startingTraits.map((tr) => (
+              <div
+                key={tr.id}
+                className={`select-option-card ${selectedTrait === tr.id ? 'active' : ''}`}
+                onClick={() => setSelectedTrait(tr.id)}
+              >
+                <div className="option-title">
+                  <Sparkles size={14} className="text-gold" />
+                  <span>{tr.name}</span>
+                </div>
+                <p className="option-desc">{tr.effect}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* 4. Class Selection */}
+        <div className="selection-section">
+          <h3>4. 직업 선택</h3>
+          <div className="card-grid col-3">
             {rulebookData.classes.map((cls) => (
               <div
                 key={cls.id}
@@ -150,16 +206,16 @@ export default function CharacterSelectModal({ isOpen, onSelectCharacter }) {
           </div>
         </div>
 
-        {/* Stat Point Distribution */}
+        {/* 5. Stat Allocation */}
         <div className="selection-section stat-allocation-box">
           <div className="stat-alloc-header">
-            <h3>3. 능력치 스킬포인트 배분</h3>
-            <span className="pts-left-badge">남은 스킬포인트: <strong>{bonusPoints} PT</strong></span>
+            <h3>5. 능력치 포인트 배분 (근력/민첩/지능)</h3>
+            <span className="pts-left-badge">남은 포인트: <strong>{bonusPoints} PT</strong></span>
           </div>
 
           <div className="alloc-rows">
             <div className="alloc-row">
-              <span>⚔️ 힘 (STR): <strong>{finalStats.str}</strong> (기본 {baseStr} + {allocatedStats.str})</span>
+              <span>⚔️ 근력 (STR): <strong>{finalStats.str}</strong> (기본 {baseStr} + {allocatedStats.str})</span>
               <div className="alloc-btns">
                 <button type="button" onClick={() => handleSubPoint('str')} disabled={allocatedStats.str === 0}>
                   <Minus size={14} />
@@ -183,12 +239,12 @@ export default function CharacterSelectModal({ isOpen, onSelectCharacter }) {
             </div>
 
             <div className="alloc-row">
-              <span>🧠 지혜 (WIS): <strong>{finalStats.wis}</strong> (기본 {baseWis} + {allocatedStats.wis})</span>
+              <span>🧠 지능 (INT): <strong>{finalStats.int}</strong> (기본 {baseInt} + {allocatedStats.int})</span>
               <div className="alloc-btns">
-                <button type="button" onClick={() => handleSubPoint('wis')} disabled={allocatedStats.wis === 0}>
+                <button type="button" onClick={() => handleSubPoint('int')} disabled={allocatedStats.int === 0}>
                   <Minus size={14} />
                 </button>
-                <button type="button" onClick={() => handleAddPoint('wis')} disabled={bonusPoints === 0}>
+                <button type="button" onClick={() => handleAddPoint('int')} disabled={bonusPoints === 0}>
                   <Plus size={14} />
                 </button>
               </div>
@@ -198,7 +254,7 @@ export default function CharacterSelectModal({ isOpen, onSelectCharacter }) {
 
         <button className="btn-start-game" onClick={handleStartAttempt}>
           <UserCheck size={20} />
-          <span>모험 시작하기</span>
+          <span>전설 이야기 시작하기 (오프렌 왕국 마을 입장)</span>
         </button>
       </div>
     </div>
