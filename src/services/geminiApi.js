@@ -204,7 +204,8 @@ Return ONLY valid JSON matching this schema:
           statUsed: ragAnalysis.statToUse,
           systemLog: playerLogText,
           enemySystemLog: enemyLogText,
-          narrationText: `${parsed.playerNarration}\n\n⚔️ [적의 반격]\n${parsed.enemyNarration}`,
+          playerNarration: parsed.playerNarration || `${character.name}은(는) "${playerInput}" 행동을 진행합니다.`,
+          enemyNarration: parsed.enemyNarration || `${enemy ? enemy.name : '적'}이 반격을 시도합니다.`,
           damageDealt,
           playerHpChange: enemyHitSuccess ? -playerDamageTaken : 0,
           isTrolling: false
@@ -237,6 +238,22 @@ Return ONLY valid JSON matching this schema:
   let localEnemyNarr = enemyHitSuccess
     ? `${enemy ? enemy.name : '적'}이 즉시 무섭게 반격해 왔고, ${character.name}은(는) ${playerDamageTaken}의 피해를 입었습니다.`
     : `${enemy ? enemy.name : '적'}이 무기를 휘둘렀지만, ${character.name}은(는) 여유롭게 피하며 공격을 회피했습니다.`;
+
+  return {
+    dc,
+    isSuccess,
+    isCritSuccess,
+    isCritFail,
+    damageRollValue,
+    statUsed: ragAnalysis.statToUse,
+    systemLog: playerLogText,
+    enemySystemLog: enemyLogText,
+    playerNarration: localPlayerNarr,
+    enemyNarration: localEnemyNarr,
+    damageDealt,
+    playerHpChange: enemyHitSuccess ? -playerDamageTaken : 0,
+    isTrolling: false
+  };
 
   return {
     dc,

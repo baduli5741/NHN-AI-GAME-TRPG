@@ -240,14 +240,17 @@ export default function App() {
   const applyActionResult = (res) => {
     const now = Date.now();
     const newLogs = [
-      { id: `combat_${now}_p`, type: 'system_player', text: res.systemLog }
+      { id: `combat_${now}_p_log`, type: 'system_player', text: res.systemLog },
+      { id: `combat_${now}_p_narr`, type: 'narration', text: res.playerNarration || res.narrationText }
     ];
 
     if (res.enemySystemLog) {
-      newLogs.push({ id: `combat_${now}_e`, type: 'system_enemy', text: res.enemySystemLog });
+      newLogs.push({ id: `combat_${now}_e_log`, type: 'system_enemy', text: res.enemySystemLog });
     }
 
-    newLogs.push({ id: `combat_${now}_n`, type: 'narration', text: res.narrationText });
+    if (res.enemyNarration) {
+      newLogs.push({ id: `combat_${now}_e_narr`, type: 'narration', text: res.enemyNarration });
+    }
 
     // Handle Enemy Damage & Defeat
     if (res.damageDealt > 0 && enemy) {

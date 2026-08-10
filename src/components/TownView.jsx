@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { ShoppingBag, Shield, Sparkles, Flame, Compass, Coins, Heart, Zap, X, ChevronRight, Anchor } from 'lucide-react';
 import rulebookData from '../data/rulebook.json';
+import { soundFx } from '../services/soundFx';
 
 export default function TownView({
   character,
@@ -22,9 +23,10 @@ export default function TownView({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [activeFacility]);
 
-  // Handle Item Purchase in Shop
+  // Handle Item Purchase in Shop with Coin Sound FX
   const handleBuyItem = (itemName, cost, hpHeal = 0) => {
     if (character.gold >= cost) {
+      soundFx.playCoinSound(); // 🪙 짤랑 코인 소리 발동!
       setCharacter(prev => {
         let newHp = prev.hp;
         let newGold = prev.gold - cost;
@@ -33,9 +35,9 @@ export default function TownView({
         }
         return { ...prev, hp: newHp, gold: newGold };
       });
-      setTownLog(`[구매 성공] ${itemName}을(를) 구매하셨습니다! (-${cost}G | 남은 골드: ${character.gold - cost}G)`);
+      setTownLog(`[구매 성공 🪙] ${itemName}을(를) 구매하셨습니다! (-${cost}G | 남은 골드: ${character.gold - cost}G)`);
     } else {
-      setTownLog('[소지금 부족] 골드가 부족하여 아이템을 구매할 수 없습니다!');
+      setTownLog('[소지금 부족 ⚠️] 골드가 부족하여 아이템을 구매할 수 없습니다!');
     }
   };
 
