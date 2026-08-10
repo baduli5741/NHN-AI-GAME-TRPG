@@ -887,6 +887,31 @@ body {
   border-color: var(--accent-gold);
 }
 
+.btn-start-game {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  background: linear-gradient(135deg, #b91c1c 0%, #7f1d1d 50%, #450a0a 100%);
+  border: 2px solid var(--border-gold);
+  color: #fef08a;
+  font-size: 1.05rem;
+  font-weight: 800;
+  padding: 0.9rem 1.6rem;
+  border-radius: 8px;
+  cursor: pointer;
+  box-shadow: 0 0 20px rgba(245, 158, 11, 0.35);
+  transition: all 0.25s ease;
+  letter-spacing: 0.5px;
+}
+
+.btn-start-game:hover {
+  filter: brightness(1.25);
+  transform: translateY(-2px);
+  box-shadow: 0 0 30px rgba(245, 158, 11, 0.6);
+  border-color: #fef08a;
+}
+
 /* Fade In Animation */
 .fade-in {
   animation: fadeIn 0.3s ease;
