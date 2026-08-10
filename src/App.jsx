@@ -226,9 +226,21 @@ export default function App() {
     ]);
   };
 
+  const [lastPlayerAction, setLastPlayerAction] = useState('');
+
   // Combat Free Text Action Handler
   const handleExecuteCombatAction = async (inputText) => {
     setIsLoading(true);
+
+    let effectiveInput = inputText;
+    const lowerInput = inputText.trim().toLowerCase();
+    const isRepeatRequest = lowerInput.includes('한번 더') || lowerInput.includes('한번더') || lowerInput.includes('한 번 더') || lowerInput.includes('다시') || lowerInput.includes('똑같이') || lowerInput.includes('연속');
+
+    if (isRepeatRequest && lastPlayerAction) {
+      effectiveInput = `${lastPlayerAction} (연속 시전!)`;
+    } else if (!isRepeatRequest) {
+      setLastPlayerAction(inputText);
+    }
 
     const diceRoll = Math.floor(Math.random() * 20) + 1;
     const statBonus = Math.floor((character.stats.str - 10) / 2) || 0;
@@ -236,7 +248,7 @@ export default function App() {
     const targetEnemy = enemies.find(e => e.id === selectedTargetId) || enemies.find(e => e.hp > 0) || enemy;
 
     const result = await evaluateCombatAction({
-      playerInput: inputText,
+      playerInput: effectiveInput,
       character,
       enemy: targetEnemy,
       diceRoll,
