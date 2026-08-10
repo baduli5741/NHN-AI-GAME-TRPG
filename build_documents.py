@@ -234,8 +234,8 @@ def create_ai_tech_pdf(filename="AI 활용 기술 문서.pdf"):
     story.append(Paragraph(prompt_text, code_style))
 
     # Section 3: RAG 검증 및 오픈소스 출처
-    story.append(Paragraph("3. RAG 룰북 검증 시스템 & 외부 에셋 출처", h1_style))
-    story.append(Paragraph("• <b>RAG Rulebook (`rulebook.json`)</b>: 룰북 데이터셋을 기반으로 종족 제약(드워프/흡혈용 송곳니 여부 등)을 검증하여 유저가 흡혈을 시도하면 송곳니 부재로 인한 치아 상해 페널티(HP -2)를 적용합니다.", bullet_style))
+    story.append(Paragraph("3. 룰북 지식 증강 (Rulebook-Augmented Generation / RAG) & 외부 에셋 출처", h1_style))
+    story.append(Paragraph("• <b>구조화 룰북 프롬프트 증강 (Structured Rulebook RAG — rulebook.json)</b>: 룰북 데이터셋에서 유저 행동과 관련된 종족 제약(드워프/흡혈용 송곳니 유무) 및 스탯 DC 규칙을 탐색/추출(Retrieval)하여 프롬프트 및 연산 엔진에 증강(Augment) 주입. (예: 송곳니 없는 종족이 물기를 시도하면 룰북 탐색 검증으로 HP -2 치아 상해 페널티 부여).", bullet_style))
     story.append(Paragraph("• <b>AI 생성 이미지 에셋 9종</b>: Google Gemini / Imagen으로 생성된 고화질 배경(핏빛 안개 숲, 원혼의 묘지, 마탑 등) 및 몬스터 아트를 <code>public/images/</code>에 배포.", bullet_style))
     story.append(Paragraph("• <b>오픈소스 라이브러리</b>: React 18, Vite 8, Lucide React (UI 아이콘), Web Audio API (금화 사운드 신세사이저).", bullet_style))
 
