@@ -255,19 +255,33 @@ export default function App() {
     // Handle Enemy Damage & Defeat
     if (res.damageDealt > 0 && enemy) {
       const newEnemyHp = Math.max(0, enemy.hp - res.damageDealt);
-      setEnemy(prev => ({ ...prev, hp: newEnemyHp }));
 
       if (newEnemyHp <= 0) {
-        const rewardGold = 30;
-        const newGold = character.gold + rewardGold;
-        setCharacter(prev => ({ ...prev, gold: newGold }));
-        setIsCombat(false);
+        const currentCount = enemy.count || 1;
+        if (currentCount > 1) {
+          // One enemy in group died, another remains!
+          setEnemy(prev => ({ ...prev, hp: prev.maxHp, count: currentCount - 1 }));
+          newLogs.push({
+            id: `combat_${now}_kill_one`,
+            type: 'system_event',
+            text: `[적 1마리 처치! ⚔️] ${enemy.name} 1마리를 처치했습니다! (남은 무리: ${currentCount - 1}마리)`
+          });
+        } else {
+          // All enemies in group defeated!
+          setEnemy(prev => ({ ...prev, hp: 0 }));
+          const rewardGold = 30;
+          const newGold = character.gold + rewardGold;
+          setCharacter(prev => ({ ...prev, gold: newGold }));
+          setIsCombat(false);
 
-        newLogs.push({
-          id: `combat_${now}_win`,
-          type: 'system_event',
-          text: `[전투 승리! 🎉] ${enemy.name}을(를) 처치했습니다! (+${rewardGold}G 획득 | 총: ${newGold}G)`
-        });
+          newLogs.push({
+            id: `combat_${now}_win`,
+            type: 'system_event',
+            text: `[전투 승리! 🎉] ${enemy.name} 무리를 완전히 처치했습니다! (+${rewardGold}G 획득 | 총: ${newGold}G)`
+          });
+        }
+      } else {
+        setEnemy(prev => ({ ...prev, hp: newEnemyHp }));
       }
     }
 

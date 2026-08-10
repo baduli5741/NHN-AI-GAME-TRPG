@@ -61,11 +61,13 @@ export default function StoryView({
               )}
             </div>
             <div className="enemy-info-bar">
-              <h4 className="enemy-name">{enemy.name}</h4>
+              <h4 className="enemy-name">
+                {enemy.name} {enemy.count && enemy.count > 1 ? `(x${enemy.count}마리)` : ''}
+              </h4>
               <div className="bar-track enemy-hp-bar">
                 <div className="bar-fill enemy-fill" style={{ width: `${enemyHpPercent}%` }} />
               </div>
-              <span className="enemy-hp-text">HP {enemy.hp} / {enemy.maxHp}</span>
+              <span className="enemy-hp-text">HP {enemy.hp} / {enemy.maxHp} {enemy.count && enemy.count > 1 ? `(남은 수량: ${enemy.count}마리)` : ''}</span>
             </div>
           </div>
         )}

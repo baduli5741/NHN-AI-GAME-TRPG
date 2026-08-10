@@ -13,6 +13,7 @@
         "name": "핏빛 고블린 척후병",
         "hp": 15,
         "maxHp": 15,
+        "count": 2,
         "atk": 4,
         "image": "monster-goblin-scout.png"
       }
@@ -30,8 +31,8 @@
       "text": "상인이 입가를 비틀며 말합니다. '체력 물약(HP +10)을 50골드에 사겠는가, 나그네?'",
       "isCombat": false,
       "choices": [
-        { "label": "🧪 물약 구매 (50 골드)", "action": "BUY_POTION" },
-        { "label": "무시하고 떠난다", "action": "LEAVE" }
+        { "label": "🧪 체력 물약 구매 (50G)", "action": "BUY_POTION" },
+        { "label": "🚶 무시하고 지나가기", "action": "PASS" }
       ]
     },
     "connections": ["node_4"]
@@ -44,48 +45,49 @@
     "bg": "ancient-shrine",
     "description": "불길한 푸른 고대 룬 문자가 일렁이는 검은 석조 제단입니다.",
     "eventScript": {
-      "text": "제단에 피를 바치면 강력한 힘을 얻을 수 있을 것 같습니다.",
+      "text": "제단에 무기를 바치자 푸른 마력이 깃들며 무기의 명중률이 상승합니다!",
       "isCombat": false,
       "choices": [
-        { "label": "🩸 피의 헌식 (HP 5 소모, 스탯 +2)", "action": "SACRIFICE_HP" },
-        { "label": "조용히 기도만 하고 떠난다", "action": "PRAY" }
+        { "label": "✨ 룬의 축복 받기", "action": "BLESSING" },
+        { "label": "🚶 지나가기", "action": "PASS" }
       ]
     },
-    "connections": ["node_4", "node_5"]
+    "connections": ["node_4"]
   },
   {
     "id": "node_4",
     "name": "통곡의 고블린 요새",
     "type": "combat",
-    "icon": "Swords",
+    "icon": "Skull",
     "bg": "goblin-fort",
     "description": "나무 가시울타리와 해골 기둥으로 둘러싸인 고블린 거점입니다.",
     "eventScript": {
-      "text": "거대한 철퇴를 든 고블린 대장이 쇠사슬을 휘두르며 고함을 지릅니다!",
+      "text": "요새 정문에서 묵직한 철퇴를 든 고블린 족장이 포효하며 막아서선다!",
       "isCombat": true,
       "enemy": {
         "name": "고블린 철퇴 족장",
-        "hp": 30,
-        "maxHp": 30,
-        "atk": 8,
+        "hp": 40,
+        "maxHp": 40,
+        "count": 1,
+        "atk": 7,
         "image": "monster-goblin-chief.png"
       }
     },
-    "connections": ["node_boss"]
+    "connections": ["node_5"]
   },
   {
     "id": "node_5",
     "name": "원혼의 묘지",
     "type": "event",
-    "icon": "Skull",
+    "icon": "Compass",
     "bg": "graveyard",
     "description": "쓰러진 기사들의 부러진 검과 비석이 뒤엉킨 성지입니다.",
     "eventScript": {
-      "text": "비석 사이에 낡은 가죽 보물상자가 놓여 있습니다.",
+      "text": "원혼들의 음산한 울음소리가 묘역 전체에 울려 퍼집니다.",
       "isCombat": false,
       "choices": [
-        { "label": "📦 보물상자 열기", "action": "OPEN_CHEST" },
-        { "label": "함정을 경계하며 지나친다", "action": "LEAVE" }
+        { "label": "🗡️ 부러진 룬검 수색", "action": "SEARCH" },
+        { "label": "🚶 지나가기", "action": "PASS" }
       ]
     },
     "connections": ["node_boss"]
@@ -98,12 +100,13 @@
     "bg": "dragon-lair",
     "description": "어둠의 심연을 지키는 흑룡 바이올렛이 당신을 쏘아봅니다.",
     "eventScript": {
-      "text": "흑룡이 칠흑 같은 화염을 뿜어내며 표효합니다! '벌레 같은 족속이 감히 이곳에 발을 들이다니!'",
+      "text": "던전 최하층. 칠흑 같은 날개를 펼친 심연의 흑룡이 칠흑 대검을 든 당신을 가만히 내려다봅니다.",
       "isCombat": true,
       "enemy": {
-        "name": "심연의 흑룡 바이올렛 (BOSS)",
-        "hp": 60,
-        "maxHp": 60,
+        "name": "심연의 흑룡 루인 (BOSS)",
+        "hp": 80,
+        "maxHp": 80,
+        "count": 1,
         "atk": 12,
         "image": "monster-dragon.png"
       }
