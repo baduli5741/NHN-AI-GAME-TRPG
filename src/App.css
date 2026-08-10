@@ -777,6 +777,52 @@ body {
   padding: 1rem;
 }
 
+.select-option-card {
+  background: #1c172d;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 1rem;
+  cursor: pointer;
+  user-select: none;
+  transition: all 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.select-option-card:hover {
+  border-color: var(--accent-gold);
+  background: #251e3d;
+  transform: translateY(-2px);
+}
+
+.select-option-card.active {
+  border: 2px solid var(--accent-gold);
+  background: #31234c;
+  box-shadow: 0 0 15px rgba(245, 158, 11, 0.3);
+}
+
+.card-grid {
+  display: grid;
+  gap: 0.8rem;
+}
+
+.card-grid.col-2 {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+.card-grid.col-3 {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.card-grid.col-4 {
+  grid-template-columns: repeat(4, 1fr);
+}
+
+.card-grid.col-5 {
+  grid-template-columns: repeat(5, 1fr);
+}
+
 .card-title-text {
   font-size: 0.95rem;
   font-weight: 700;
