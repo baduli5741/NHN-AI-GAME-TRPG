@@ -21,6 +21,12 @@ export default function StoryView({
   const sceneImagePath = `${baseUrl}images/${currentNode.bg}.png`;
   const enemyImagePath = enemy?.image ? `${baseUrl}images/${enemy.image}` : null;
 
+  // Reset image load errors when node or enemy changes
+  useEffect(() => {
+    setImgError(false);
+    setEnemyImgError(false);
+  }, [currentNode?.id, enemy?.image]);
+
   // Auto-scroll to bottom when new story logs arrive
   useEffect(() => {
     if (scrollRef.current) {
