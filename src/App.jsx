@@ -79,6 +79,15 @@ export default function App() {
     handleSelectNode(targetNodeId);
   };
 
+  const [enemies, setEnemies] = useState(() => {
+    return currentNode.eventScript.enemies
+      ? currentNode.eventScript.enemies.map(e => ({ ...e }))
+      : currentNode.eventScript.enemy ? [{ ...currentNode.eventScript.enemy, id: 'enemy_1' }] : [];
+  });
+  const [selectedTargetId, setSelectedTargetId] = useState(() => {
+    return currentNode.eventScript.enemies?.[0]?.id || 'enemy_1';
+  });
+
   // Node Selection Handler
   const handleSelectNode = (nodeId) => {
     const targetNode = nodesData.find(n => n.id === nodeId);
@@ -88,8 +97,19 @@ export default function App() {
     setIsCombat(!!targetNode.eventScript.isCombat);
     setChoices(targetNode.eventScript.choices || []);
 
-    const newEnemy = targetNode.eventScript.enemy ? { ...targetNode.eventScript.enemy } : null;
-    setEnemy(newEnemy);
+    if (targetNode.eventScript.isCombat) {
+      const initialEnemies = targetNode.eventScript.enemies
+        ? targetNode.eventScript.enemies.map(e => ({ ...e }))
+        : targetNode.eventScript.enemy ? [{ ...targetNode.eventScript.enemy, id: 'enemy_1' }] : [];
+
+      setEnemies(initialEnemies);
+      setEnemy(initialEnemies[0] || null);
+      setSelectedTargetId(initialEnemies[0]?.id || null);
+    } else {
+      setEnemies([]);
+      setEnemy(null);
+      setSelectedTargetId(null);
+    }
 
     const now = Date.now();
     setStoryHistory(prev => [
@@ -213,10 +233,12 @@ export default function App() {
     const diceRoll = Math.floor(Math.random() * 20) + 1;
     const statBonus = Math.floor((character.stats.str - 10) / 2) || 0;
 
+    const targetEnemy = enemies.find(e => e.id === selectedTargetId) || enemies.find(e => e.hp > 0) || enemy;
+
     const result = await evaluateCombatAction({
       playerInput: inputText,
       character,
-      enemy,
+      enemy: targetEnemy,
       diceRoll,
       statBonus,
       apiKey,
@@ -225,6 +247,7 @@ export default function App() {
 
     result.rawDiceRoll = diceRoll;
     result.statBonus = statBonus;
+    result.targetEnemyId = targetEnemy?.id;
 
     setPendingActionResult(result);
     setIsLoading(false);
@@ -252,36 +275,49 @@ export default function App() {
       newLogs.push({ id: `combat_${now}_e_narr`, type: 'narration', text: res.enemyNarration });
     }
 
-    // Handle Enemy Damage & Defeat
-    if (res.damageDealt > 0 && enemy) {
-      const newEnemyHp = Math.max(0, enemy.hp - res.damageDealt);
+    // Handle Individual Target Damage & Defeat
+    if (res.damageDealt > 0 && enemies.length > 0) {
+      const targetId = res.targetEnemyId || selectedTargetId;
+      let allDead = false;
 
-      if (newEnemyHp <= 0) {
-        const currentCount = enemy.count || 1;
-        if (currentCount > 1) {
-          // One enemy in group died, another remains!
-          setEnemy(prev => ({ ...prev, hp: prev.maxHp, count: currentCount - 1 }));
-          newLogs.push({
-            id: `combat_${now}_kill_one`,
-            type: 'system_event',
-            text: `[적 1마리 처치! ⚔️] ${enemy.name} 1마리를 처치했습니다! (남은 무리: ${currentCount - 1}마리)`
-          });
-        } else {
-          // All enemies in group defeated!
-          setEnemy(prev => ({ ...prev, hp: 0 }));
-          const rewardGold = 30;
-          const newGold = character.gold + rewardGold;
-          setCharacter(prev => ({ ...prev, gold: newGold }));
-          setIsCombat(false);
+      setEnemies(prev => {
+        const nextList = prev.map(e => {
+          if (e.id === targetId) {
+            const nextHp = Math.max(0, e.hp - res.damageDealt);
+            return { ...e, hp: nextHp };
+          }
+          return e;
+        });
 
-          newLogs.push({
-            id: `combat_${now}_win`,
-            type: 'system_event',
-            text: `[전투 승리! 🎉] ${enemy.name} 무리를 완전히 처치했습니다! (+${rewardGold}G 획득 | 총: ${newGold}G)`
-          });
+        allDead = nextList.every(e => e.hp <= 0);
+        return nextList;
+      });
+
+      const updatedTarget = enemies.find(e => e.id === targetId);
+      if (updatedTarget && (updatedTarget.hp - res.damageDealt) <= 0) {
+        newLogs.push({
+          id: `combat_${now}_kill_target`,
+          type: 'system_event',
+          text: `[적 처치! ⚔️] ${updatedTarget.name}을(를) 완벽히 쓰러뜨렸습니다!`
+        });
+
+        const nextLiving = enemies.find(e => e.id !== targetId && e.hp > 0);
+        if (nextLiving) {
+          setSelectedTargetId(nextLiving.id);
         }
-      } else {
-        setEnemy(prev => ({ ...prev, hp: newEnemyHp }));
+      }
+
+      if (allDead) {
+        const rewardGold = 40;
+        const newGold = character.gold + rewardGold;
+        setCharacter(prev => ({ ...prev, gold: newGold }));
+        setIsCombat(false);
+
+        newLogs.push({
+          id: `combat_${now}_win`,
+          type: 'system_event',
+          text: `[전투 승리! 🎉] 모든 적 무리를 처치했습니다! (+${rewardGold}G 획득 | 총: ${newGold}G)`
+        });
       }
     }
 
@@ -373,6 +409,9 @@ export default function App() {
               <StoryView
                 currentNode={currentNode}
                 enemy={enemy}
+                enemies={enemies}
+                selectedTargetId={selectedTargetId}
+                onSelectTarget={(targetId) => setSelectedTargetId(targetId)}
                 storyHistory={storyHistory}
                 choices={choices}
                 onChoiceSelect={handleChoiceSelect}

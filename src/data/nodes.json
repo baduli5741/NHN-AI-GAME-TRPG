@@ -9,14 +9,24 @@
     "eventScript": {
       "text": "붉은 안개 속에서 고블린 척후병 둘이 당신을 발견하고 칼을 뽑아 듭니다!",
       "isCombat": true,
-      "enemy": {
-        "name": "핏빛 고블린 척후병",
-        "hp": 15,
-        "maxHp": 15,
-        "count": 2,
-        "atk": 4,
-        "image": "monster-goblin-scout.png"
-      }
+      "enemies": [
+        {
+          "id": "goblin_a",
+          "name": "핏빛 고블린 척후병 A",
+          "hp": 15,
+          "maxHp": 15,
+          "atk": 4,
+          "image": "monster-goblin-scout.png"
+        },
+        {
+          "id": "goblin_b",
+          "name": "핏빛 고블린 척후병 B",
+          "hp": 15,
+          "maxHp": 15,
+          "atk": 4,
+          "image": "monster-goblin-scout.png"
+        }
+      ]
     },
     "connections": ["node_2", "node_3"]
   },
@@ -64,14 +74,16 @@
     "eventScript": {
       "text": "요새 정문에서 묵직한 철퇴를 든 고블린 족장이 포효하며 막아서선다!",
       "isCombat": true,
-      "enemy": {
-        "name": "고블린 철퇴 족장",
-        "hp": 40,
-        "maxHp": 40,
-        "count": 1,
-        "atk": 7,
-        "image": "monster-goblin-chief.png"
-      }
+      "enemies": [
+        {
+          "id": "goblin_chief",
+          "name": "고블린 철퇴 족장",
+          "hp": 40,
+          "maxHp": 40,
+          "atk": 7,
+          "image": "monster-goblin-chief.png"
+        }
+      ]
     },
     "connections": ["node_5"]
   },
@@ -102,14 +114,16 @@
     "eventScript": {
       "text": "던전 최하층. 칠흑 같은 날개를 펼친 심연의 흑룡이 칠흑 대검을 든 당신을 가만히 내려다봅니다.",
       "isCombat": true,
-      "enemy": {
-        "name": "심연의 흑룡 루인 (BOSS)",
-        "hp": 80,
-        "maxHp": 80,
-        "count": 1,
-        "atk": 12,
-        "image": "monster-dragon.png"
-      }
+      "enemies": [
+        {
+          "id": "dragon_ruin",
+          "name": "심연의 흑룡 루인 (BOSS)",
+          "hp": 80,
+          "maxHp": 80,
+          "atk": 12,
+          "image": "monster-dragon.png"
+        }
+      ]
     },
     "connections": []
   }

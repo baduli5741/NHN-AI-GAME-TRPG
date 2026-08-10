@@ -1,9 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Skull, ShieldAlert, Sparkles, MessageSquare, MapPin, Compass } from 'lucide-react';
+import { Skull, ShieldAlert, Sparkles, MessageSquare, MapPin, Compass, Target } from 'lucide-react';
 
 export default function StoryView({
   currentNode,
   enemy,
+  enemies = [],
+  selectedTargetId,
+  onSelectTarget,
   storyHistory,
   choices,
   onChoiceSelect,
@@ -17,15 +20,18 @@ export default function StoryView({
   const scrollRef = useRef(null);
   
   const baseUrl = import.meta.env.BASE_URL || '/';
-  const enemyHpPercent = enemy ? Math.max(0, Math.min(100, Math.round((enemy.hp / enemy.maxHp) * 100))) : 0;
   const sceneImagePath = `${baseUrl}images/${currentNode.bg}.png`;
-  const enemyImagePath = enemy?.image ? `${baseUrl}images/${enemy.image}` : null;
+
+  // Normalize enemy list
+  const activeEnemiesList = (enemies && enemies.length > 0)
+    ? enemies
+    : (enemy ? [enemy] : []);
 
   // Reset image load errors when node or enemy changes
   useEffect(() => {
     setImgError(false);
     setEnemyImgError(false);
-  }, [currentNode?.id, enemy?.image]);
+  }, [currentNode?.id]);
 
   // Auto-scroll to bottom when new story logs arrive
   useEffect(() => {
@@ -51,30 +57,61 @@ export default function StoryView({
 
         <div className="scene-overlay" />
         
-        {/* Prominent Enemy Combat Art Card */}
-        {isCombat && enemy && enemy.hp > 0 && (
-          <div className="enemy-card large-portrait">
-            <div className="enemy-portrait-frame">
-              {enemyImagePath && !enemyImgError ? (
-                <img
-                  src={enemyImagePath}
-                  alt={enemy.name}
-                  className="enemy-portrait-img"
-                  onError={() => setEnemyImgError(true)}
-                />
-              ) : (
-                <Skull size={36} className="enemy-icon" />
-              )}
-            </div>
-            <div className="enemy-info-bar">
-              <h4 className="enemy-name">
-                {enemy.name} {enemy.count && enemy.count > 1 ? `(x${enemy.count}마리)` : ''}
-              </h4>
-              <div className="bar-track enemy-hp-bar">
-                <div className="bar-fill enemy-fill" style={{ width: `${enemyHpPercent}%` }} />
-              </div>
-              <span className="enemy-hp-text">HP {enemy.hp} / {enemy.maxHp} {enemy.count && enemy.count > 1 ? `(남은 수량: ${enemy.count}마리)` : ''}</span>
-            </div>
+        {/* Prominent Enemy Combat Art Cards (Supports Multiple Targets) */}
+        {isCombat && activeEnemiesList.length > 0 && (
+          <div className="enemy-cards-container">
+            {activeEnemiesList.map((enemyItem, idx) => {
+              const enemyHpPercent = Math.max(0, Math.min(100, Math.round((enemyItem.hp / enemyItem.maxHp) * 100)));
+              const isSelected = selectedTargetId === enemyItem.id || (idx === 0 && !selectedTargetId);
+              const isDead = enemyItem.hp <= 0;
+              const enemyImgPath = enemyItem.image ? `${baseUrl}images/${enemyItem.image}` : null;
+
+              return (
+                <div
+                  key={enemyItem.id || idx}
+                  className={`enemy-card large-portrait ${isSelected ? 'selected-target' : ''} ${isDead ? 'dead' : ''}`}
+                  onClick={() => !isDead && onSelectTarget && onSelectTarget(enemyItem.id)}
+                >
+                  {/* Target Badge */}
+                  {isSelected && !isDead && (
+                    <div className="target-badge">
+                      <Target size={14} />
+                      <span>타겟 지정됨</span>
+                    </div>
+                  )}
+
+                  {isDead && (
+                    <div className="dead-badge">
+                      <span>💀 처치됨</span>
+                    </div>
+                  )}
+
+                  <div className="enemy-portrait-frame">
+                    {enemyImgPath && !enemyImgError ? (
+                      <img
+                        src={enemyImgPath}
+                        alt={enemyItem.name}
+                        className="enemy-portrait-img"
+                        onError={() => setEnemyImgError(true)}
+                      />
+                    ) : (
+                      <Skull size={36} className="enemy-icon" />
+                    )}
+                  </div>
+
+                  <div className="enemy-info-bar">
+                    <h4 className="enemy-name">{enemyItem.name}</h4>
+                    <div className="bar-track enemy-hp-bar">
+                      <div
+                        className="bar-fill enemy-fill"
+                        style={{ width: `${enemyHpPercent}%` }}
+                      />
+                    </div>
+                    <span className="enemy-hp-text">HP {enemyItem.hp} / {enemyItem.maxHp}</span>
+                  </div>
+                </div>
+              );
+            })}
           </div>
         )}
 
@@ -154,7 +191,7 @@ export default function StoryView({
         )}
 
         {/* Post-combat & Node Exploration Options */}
-        {(!isCombat || (enemy && enemy.hp <= 0)) && (
+        {(!isCombat || (activeEnemiesList.length > 0 && activeEnemiesList.every(e => e.hp <= 0))) && (
           <div className="post-combat-actions">
             <button
               className="btn-choice explore-btn"

@@ -591,11 +591,23 @@ body {
   background: linear-gradient(180deg, rgba(0, 0, 0, 0.15) 0%, rgba(10, 9, 14, 0.88) 100%);
 }
 
-/* Enemy Large Portrait Card */
-.enemy-card.large-portrait {
+/* Enemy Large Portrait Cards Container (Supports Multiple Targets) */
+.enemy-cards-container {
   position: absolute;
   top: 1rem;
   right: 1rem;
+  display: flex;
+  gap: 0.8rem;
+  z-index: 5;
+  flex-wrap: wrap;
+  max-width: calc(100% - 2rem);
+  justify-content: flex-end;
+}
+
+.enemy-card.large-portrait {
+  position: relative;
+  top: auto;
+  right: auto;
   background: rgba(18, 15, 26, 0.94);
   backdrop-filter: blur(6px);
   border: 1px solid var(--accent-crimson);
@@ -604,8 +616,58 @@ body {
   display: flex;
   align-items: center;
   gap: 0.8rem;
-  min-width: 240px;
+  min-width: 230px;
   box-shadow: 0 0 20px rgba(220, 38, 38, 0.3);
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+.enemy-card.large-portrait:hover:not(.dead) {
+  border-color: var(--accent-gold);
+  transform: translateY(-2px);
+}
+
+.enemy-card.selected-target {
+  border: 2px solid var(--accent-gold);
+  box-shadow: 0 0 22px rgba(245, 158, 11, 0.6);
+  transform: translateY(-3px);
+  background: rgba(30, 22, 42, 0.96);
+}
+
+.enemy-card.dead {
+  opacity: 0.45;
+  filter: grayscale(0.85);
+  cursor: not-allowed;
+}
+
+.target-badge {
+  position: absolute;
+  top: -0.65rem;
+  right: 0.6rem;
+  background: linear-gradient(90deg, #d97706, #b45309);
+  color: #fff;
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 0.2rem 0.55rem;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  box-shadow: 0 0 10px rgba(245, 158, 11, 0.7);
+}
+
+.dead-badge {
+  position: absolute;
+  inset: 0;
+  background: rgba(10, 8, 15, 0.82);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  color: #fca5a5;
+  font-weight: 700;
+  font-size: 0.85rem;
+  z-index: 6;
 }
 
 .enemy-portrait-frame {
