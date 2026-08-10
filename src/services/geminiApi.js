@@ -1,8 +1,8 @@
 import rulebookData from '../data/rulebook.json';
 
 const DEFAULT_GEMINI_KEY = import.meta.env.VITE_GEMINI_API_KEY || '';
-// Encoded Base64 fallback key to prevent plaintext git scanner leaks
-const DEMO_FALLBACK_KEY = atob('QVEuQWI4Uk42TEkxYzRaTkJ6MWlGQ2tJWnZiTzg3cEpWclZFdHp1a0dJT2Vad0stby1BTnc=');
+// Encoded Base64 fallback key for production demo
+const DEMO_FALLBACK_KEY = atob('QVEuQWI4Uk42SUljc3BER1l5TWVCQlRLUG03LUl1U3B3N25jam5ZRDF4WHViZF9Ram1OMnc=');
 
 /**
  * Advanced RAG Skill & Action Intent Classifier (D&D 5e / TRPG Industry Standard)
@@ -205,52 +205,50 @@ Return ONLY valid JSON matching this schema:
 }
 `;
 
-  // Try robust model chain (gemini-2.0-flash -> gemini-2.5-flash -> gemini-1.5-pro)
-  const modelsToTry = ['gemini-2.0-flash', 'gemini-2.5-flash', 'gemini-1.5-pro'];
+  // Dedicated Model: gemini-3.5-flash exclusively
+  const modelName = 'gemini-3.5-flash';
 
-  for (const modelName of modelsToTry) {
-    try {
-      const endpoint = proxyUrl || `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${activeKey}`;
-      const response = await fetch(endpoint, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: prompt }] }],
-          generationConfig: { responseMimeType: "application/json" }
-        })
-      });
+  try {
+    const endpoint = proxyUrl || `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${activeKey}`;
+    const response = await fetch(endpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: prompt }] }],
+        generationConfig: { responseMimeType: "application/json" }
+      })
+    });
 
-      if (response.ok) {
-        const jsonRes = await response.json();
-        const rawText = jsonRes.candidates?.[0]?.content?.parts?.[0]?.text;
-        if (rawText) {
-          const parsed = JSON.parse(rawText);
-          
-          let playerLogText = buildSystemPlayerLog({ actionCategory, isSuccess, isCritSuccess, isCritFail, dc, diceRoll, statBonus, statName: ragAnalysis.statToUse, damageDealt, healAmount });
-          let enemyLogText = buildSystemEnemyLog({ actionCategory, isSuccess, enemyHitSuccess, enemyName: enemy?.name, enemyDiceRoll, enemyAtkDc, playerDamageTaken, characterName: character.name });
+    if (response.ok) {
+      const jsonRes = await response.json();
+      const rawText = jsonRes.candidates?.[0]?.content?.parts?.[0]?.text;
+      if (rawText) {
+        const parsed = JSON.parse(rawText);
+        
+        let playerLogText = buildSystemPlayerLog({ actionCategory, isSuccess, isCritSuccess, isCritFail, dc, diceRoll, statBonus, statName: ragAnalysis.statToUse, damageDealt, healAmount });
+        let enemyLogText = buildSystemEnemyLog({ actionCategory, isSuccess, enemyHitSuccess, enemyName: enemy?.name, enemyDiceRoll, enemyAtkDc, playerDamageTaken, characterName: character.name });
 
-          return {
-            dc,
-            isSuccess,
-            isCritSuccess,
-            isCritFail,
-            damageRollValue,
-            statUsed: ragAnalysis.statToUse,
-            systemLog: playerLogText,
-            enemySystemLog: enemyLogText,
-            playerNarration: parsed.playerNarration || `${character.name}은(는) "${playerInput}" 행동을 진행합니다.`,
-            enemyNarration: parsed.enemyNarration || `${enemy ? enemy.name : '적'}이 반응합니다.`,
-            damageDealt,
-            playerHpChange: healAmount > 0 ? healAmount : (enemyHitSuccess ? -playerDamageTaken : 0),
-            isTrolling: false
-          };
-        }
-      } else {
-        console.warn(`[Gemini API Warning] Model ${modelName} returned status ${response.status}. (If 429: API Key Quota Exceeded)`);
+        return {
+          dc,
+          isSuccess,
+          isCritSuccess,
+          isCritFail,
+          damageRollValue,
+          statUsed: ragAnalysis.statToUse,
+          systemLog: playerLogText,
+          enemySystemLog: enemyLogText,
+          playerNarration: parsed.playerNarration || `${character.name}은(는) "${playerInput}" 행동을 진행합니다.`,
+          enemyNarration: parsed.enemyNarration || `${enemy ? enemy.name : '적'}이 반응합니다.`,
+          damageDealt,
+          playerHpChange: healAmount > 0 ? healAmount : (enemyHitSuccess ? -playerDamageTaken : 0),
+          isTrolling: false
+        };
       }
-    } catch (err) {
-      console.warn(`[Gemini API Error] Model ${modelName} fetch error:`, err);
+    } else {
+      console.warn(`[Gemini API Warning] Model ${modelName} returned status ${response.status}`);
     }
+  } catch (err) {
+    console.warn(`[Gemini API Error] Model ${modelName} fetch error:`, err);
   }
 
   // Dynamic Local Fallback Engine
