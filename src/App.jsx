@@ -44,7 +44,14 @@ export default function App() {
 
   const [diceAnimOn, setDiceAnimOn] = useState(true);
   const [soundOn, setSoundOn] = useState(true);
-  const [apiKey, setApiKey] = useState('AIzaSyBH8e2a2o1Li2cg1JVMZbtwdk4AyDS-Ea0');
+  const [apiKey, setApiKeyState] = useState(() => {
+    return localStorage.getItem('gemini_api_key') || import.meta.env.VITE_GEMINI_API_KEY || '';
+  });
+
+  const setApiKey = (newKey) => {
+    setApiKeyState(newKey);
+    localStorage.setItem('gemini_api_key', newKey);
+  };
   const [proxyUrl, setProxyUrl] = useState('');
 
   const [isMapOpen, setIsMapOpen] = useState(false);
